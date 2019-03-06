@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -29,7 +28,6 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       report_text = 'legitimate'
     if report_text:
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
-
 
 with tf.Session() as sess:
     model = ModelAllConvolutional('model2', 10, 64,
