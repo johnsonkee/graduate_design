@@ -58,5 +58,6 @@ with tf.Session() as sess:
 
     graph = tf.get_default_graph()
     model1 = graph.get_name_scope()
+    print(model1)
     # preds = model1.get_logits(x)
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
