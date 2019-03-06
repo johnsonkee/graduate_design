@@ -55,6 +55,6 @@ with tf.Session() as sess:
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
     graph = tf.get_default_graph()
-    preds = graph.get_tensor_by_name("preds")
+    preds = graph.get_tensor_by_name("preds:0")
     # preds = model1.get_logits(x)
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
