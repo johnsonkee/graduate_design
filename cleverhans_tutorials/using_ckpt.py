@@ -8,11 +8,11 @@ import sys
 import tensorflow as tf
 from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 
-model_path = sys.path[0] + '/simple_mnist.ckpt'
+
 
 def restore_model_evaluate(sess):
 
-    saver = tf.train.Saver()
+    saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
     model_file = tf.train.latest_checkpoint('./')
     saver.restore(sess, model_file)
     print('loading adversial models successfully!\n')
