@@ -34,7 +34,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
 with tf.Session() as sess:
     model = ModelAllConvolutional('model2', 10, 64,
                                  input_shape=[32, 32, 3])
-    restore_model_evaluate(sess)
+    # restore_model_evaluate(sess)
 
     data = CIFAR10(train_start=0, train_end=60000,
                    test_start=0, test_end=10000)
