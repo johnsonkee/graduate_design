@@ -54,5 +54,7 @@ with tf.Session() as sess:
                                           nchannels))
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
-    preds = model.get_logits(x)
-    do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
+    graph = tf.get_default_graph()
+    model1 = graph.get_operation_by_name('model1')
+    # preds = model1.get_logits(x)
+    # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
