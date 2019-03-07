@@ -162,9 +162,10 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
         bim = BasicIterativeMethod(model, sess=sess)
         adv_x = bim.generate(x, **bim_params)
         preds_adv = model.get_logits(adv_x)
-        bim_params["nb_iter"] = bim_params["nb_iter"] + 2
     # Evaluate the accuracy of the MNIST model on adversarial examples
+        print("nb_iter:%d" % bim_params["nb_iter"])
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
+        bim_params["nb_iter"] = bim_params["nb_iter"] + 2
 
     # Calculate training error
     if testing:
