@@ -159,8 +159,8 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     # Initialize the Basic Iterative Method (BIM) attack object and
     # graph
     bim = BasicIterativeMethod(model, sess=sess)
-    for i in range(10):
-        bim_params["nb_iter"] = bim_params["nb_iter"] + 1
+    for i in range(15):
+        bim_params["nb_iter"] = bim_params["nb_iter"] + 2
         adv_x = bim.generate(x, **bim_params)
         preds_adv = model.get_logits(adv_x)
 
