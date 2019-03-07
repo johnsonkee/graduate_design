@@ -115,7 +115,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   bim_params = {
       'eps': 0.3,
       'clip_min': 0.,
-      'nb_iter=':5,
+      'nb_iter':5,
       'clip_max': 1.,
       'ord':2
   }
