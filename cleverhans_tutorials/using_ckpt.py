@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -30,7 +29,6 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
     if report_text:
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
-
 with tf.Session() as sess:
     model1 = ModelAllConvolutional('model2', 10, 64,
                                  input_shape=[32, 32, 3])
@@ -57,5 +55,11 @@ with tf.Session() as sess:
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
 
+
     preds = model1.get_logits(x)
+
+    graph = tf.get_default_graph()
+    preds = graph.get_tensor_by_name("model1:0")
+    # preds = model1.get_logits(x)
+
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
