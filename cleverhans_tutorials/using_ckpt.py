@@ -59,6 +59,6 @@ with tf.Session() as sess:
 
     restore_model_evaluate(sess)
     preds = model.get_logits(x)
-    sess.run(preds,{x:x_train})
+    sess.run(preds,{x:x_test})
 
-    do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
+    # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
