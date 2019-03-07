@@ -59,7 +59,7 @@ with tf.Session() as sess:
 
     preds = model1.get_logits(x)
     sess.run(tf.global_variables_initializer())
-    print(tf.get_default_graph().get_operations())
+    # print(tf.get_default_graph().get_operations())
     model = tf.get_default_graph().get_operation_by_name("model1/Mean")
 
-    do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
+    do_eval(model, x_test, y_test, 'clean_train_clean_eval', False)
