@@ -57,6 +57,8 @@ with tf.Session() as sess:
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
 
     restore_model_evaluate(sess)
+    graph = tf.get_default_graph()
+    graph.get_operations()
     preds = model.get_logits(x)
     # sess.run(model.O_LOGITS)
 
