@@ -10,6 +10,8 @@ from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 from cleverhans.augmentation import random_horizontal_flip, random_shift
 from cleverhans.utils_tf import model_eval
 
+import pdb
+
 def restore_model_evaluate(sess):
 
     saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
@@ -29,8 +31,9 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
 with tf.Session() as sess:
-    # model = ModelAllConvolutional('model1', 10, 64,
-    #                              input_shape=[32, 32, 3])
+    pdb.set_trace()
+    model = ModelAllConvolutional('model1', 10, 64,
+                                 input_shape=[32, 32, 3])
 
     data = CIFAR10(train_start=0, train_end=60000,
                    test_start=0, test_end=10000)
