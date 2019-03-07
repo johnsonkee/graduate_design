@@ -32,7 +32,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
 
 
 with tf.Session() as sess:
-    model = ModelAllConvolutional('model2', 10, 64,
+    model1 = ModelAllConvolutional('model2', 10, 64,
                                  input_shape=[32, 32, 3])
     restore_model_evaluate(sess)
 
@@ -56,7 +56,6 @@ with tf.Session() as sess:
                                           nchannels))
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
-    graph = tf.get_default_graph()
-    model1 = graph.get_operation_by_name('model1')
-    # preds = model1.get_logits(x)
+
+    preds = model1.get_logits(x)
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
