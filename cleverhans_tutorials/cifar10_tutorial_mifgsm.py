@@ -152,7 +152,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
           var_list=model.get_params())
     # save model
     model_path = sys.path[0] + '/simple_cifar10.ckpt'
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=1)
     saver.save(sess, model_path)
 
     # Calculate training error
