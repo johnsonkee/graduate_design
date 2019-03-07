@@ -16,7 +16,7 @@ def restore_model_evaluate(sess):
     saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
     model_file = tf.train.latest_checkpoint('./')
     saver.restore(sess, model_file)
-    print('loading adversial models successfully!\n')
+    print('loading adversarial models successfully!\n')
 
 def do_eval(preds, x_set, y_set, report_key, is_adv=None):
     acc = model_eval(sess, x, y, preds, x_set, y_set, args={'batch_size': 128})
@@ -30,9 +30,8 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
 with tf.Session() as sess:
-    model1 = ModelAllConvolutional('model1', 10, 64,
+    model = ModelAllConvolutional('model1', 10, 64,
                                  input_shape=[32, 32, 3])
-    vgg_ref_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='vgg_feat_fc')
     restore_model_evaluate(sess)
 
     data = CIFAR10(train_start=0, train_end=60000,
@@ -57,9 +56,7 @@ with tf.Session() as sess:
 
 
 
-    preds = model1.get_logits(x)
-    sess.run(tf.global_variables_initializer())
-    model = tf.get_default_graph().get_tensor_by_name("model1/Mean:0")
+    preds = model.get_logits(x)
 
 
     do_eval(model, x_test, y_test, 'clean_train_clean_eval', False)

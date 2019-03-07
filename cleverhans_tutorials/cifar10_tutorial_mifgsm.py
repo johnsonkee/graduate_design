@@ -167,6 +167,16 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     # Evaluate the accuracy of the MNIST model on adversarial examples
     do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
 
+  # trying-------------------------
+    saver1 = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
+    model_file = tf.train.latest_checkpoint('./')
+    saver1.restore(sess, model_file)
+    print('loading adversial models successfully!\n')
+
+
+
+    # --------------------------
+
     # Calculate training error
     if testing:
       do_eval(preds_adv, x_train, y_train, 'train_clean_train_adv_eval')
