@@ -31,7 +31,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
 with tf.Session() as sess:
-    pdb.set_trace()
+
     model = ModelAllConvolutional('model1', 10, 64,
                                  input_shape=[32, 32, 3])
 
@@ -59,7 +59,13 @@ with tf.Session() as sess:
     # sess.run(tf.global_variables_initializer())
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
 
-    restore_model_evaluate(sess)
+    saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
+    model_file = tf.train.latest_checkpoint('./')
+    saver.restore(sess, model_file)
+    print('loading adversarial models successfully!\n')
+
+    pdb.set_trace()
+
     graph = tf.get_default_graph()
     print(graph.get_operations())
     # preds = model.get_logits(x)
