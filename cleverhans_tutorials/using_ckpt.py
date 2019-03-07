@@ -30,7 +30,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
 with tf.Session() as sess:
-    model1 = ModelAllConvolutional('model2', 10, 64,
+    model1 = ModelAllConvolutional('model1', 10, 64,
                                  input_shape=[32, 32, 3])
     restore_model_evaluate(sess)
 
@@ -58,8 +58,6 @@ with tf.Session() as sess:
 
     preds = model1.get_logits(x)
 
-    graph = tf.get_default_graph()
-    preds = graph.get_tensor_by_name("model1:0")
     # preds = model1.get_logits(x)
 
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
