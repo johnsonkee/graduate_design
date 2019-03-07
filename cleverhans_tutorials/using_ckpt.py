@@ -32,6 +32,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
 with tf.Session() as sess:
     model1 = ModelAllConvolutional('model1', 10, 64,
                                  input_shape=[32, 32, 3])
+    vgg_ref_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='vgg_feat_fc')
     restore_model_evaluate(sess)
 
     data = CIFAR10(train_start=0, train_end=60000,
@@ -58,5 +59,6 @@ with tf.Session() as sess:
 
     preds = model1.get_logits(x)
     sess.run(tf.initialize_all_variables())
+    model = tf.get_default_graph().get_collection("model1")[0]
 
     do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
