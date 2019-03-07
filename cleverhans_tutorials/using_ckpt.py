@@ -29,8 +29,8 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
       print('Test accuracy on %s examples: %0.4f' % (report_text, acc))
 
 with tf.Session() as sess:
-    model = ModelAllConvolutional('model1', 10, 64,
-                                 input_shape=[32, 32, 3])
+    # model = ModelAllConvolutional('model1', 10, 64,
+    #                              input_shape=[32, 32, 3])
 
     data = CIFAR10(train_start=0, train_end=60000,
                    test_start=0, test_end=10000)
@@ -58,8 +58,8 @@ with tf.Session() as sess:
 
     restore_model_evaluate(sess)
     graph = tf.get_default_graph()
-    graph.get_operations()
-    preds = model.get_logits(x)
+    print(graph.get_operations())
+    # preds = model.get_logits(x)
     # sess.run(model.O_LOGITS)
 
-    do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
+    #$ do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
