@@ -10,7 +10,6 @@ from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 from cleverhans.augmentation import random_horizontal_flip, random_shift
 from cleverhans.utils_tf import model_eval
 
-
 def restore_model_evaluate(sess):
 
     saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
@@ -59,6 +58,6 @@ with tf.Session() as sess:
 
     restore_model_evaluate(sess)
     preds = model.get_logits(x)
-    sess.run(preds,{x:x_test})
+    sess.run(model.O_LOGITS)
 
     # do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
