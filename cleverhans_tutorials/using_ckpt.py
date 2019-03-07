@@ -54,6 +54,9 @@ with tf.Session() as sess:
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
     preds = model.get_logits(x)
+    sess.run(tf.global_variables_initializer())
+    do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
+
     restore_model_evaluate(sess)
     preds = model.get_logits(x)
 
