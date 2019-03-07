@@ -1,2 +1,0 @@
-model_checkpoint_path: "C:\\Users\\user\\Documents\\GITHUB\\cleverhans-master\\cleverhans-master\\cleverhans_tutorials/simple_cifar10.ckpt"
-all_model_checkpoint_paths: "C:\\Users\\user\\Documents\\GITHUB\\cleverhans-master\\cleverhans-master\\cleverhans_tutorials/simple_cifar10.ckpt"
