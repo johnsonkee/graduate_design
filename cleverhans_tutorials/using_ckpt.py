@@ -31,8 +31,7 @@ def do_eval(preds, x_set, y_set, report_key, is_adv=None):
 
 with tf.Session() as sess:
     model = ModelAllConvolutional('model1', 10, 64,
-                                 input_shape=[32, 32, 3])
-    restore_model_evaluate(sess)
+                                 input_shape=[32, 32, 3])\
 
     data = CIFAR10(train_start=0, train_end=60000,
                    test_start=0, test_end=10000)
@@ -54,8 +53,8 @@ with tf.Session() as sess:
                                           nchannels))
     y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
-
-
     preds = model.get_logits(x)
+    restore_model_evaluate(sess)
+
 
     do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
