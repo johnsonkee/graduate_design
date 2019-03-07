@@ -115,7 +115,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   mifgsm_params = {
       'eps': 0.3,
       'clip_min': 0.,
-      'nb_iter=':5,
+      'nb_iter':1,
       'clip_max': 1.,
       'ord':2
   }
@@ -161,21 +161,15 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     # Initialize the Basic Iterative Method (BIM) attack object and
     # graph
     mifgsm = MomentumIterativeMethod(model, sess=sess)
-    adv_x = mifgsm.generate(x, **mifgsm_params)
-    preds_adv = model.get_logits(adv_x)
+
+    for i in range(15):
+        adv_x = mifgsm.generate(x, **mifgsm_params)
+        preds_adv = model.get_logits(adv_x)
+        mifgsm_params['nb_iter'] = mifgsm_params['nb_iter'] + 2
 
     # Evaluate the accuracy of the MNIST model on adversarial examples
-    do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
+        do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
 
-  # trying-------------------------
-    saver1 = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
-    model_file = tf.train.latest_checkpoint('./')
-    saver1.restore(sess, model_file)
-    print('loading adversial models successfully!\n')
-
-
-
-    # --------------------------
 
     # Calculate training error
     if testing:
