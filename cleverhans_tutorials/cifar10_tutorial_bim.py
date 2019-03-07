@@ -115,7 +115,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   bim_params = {
       'eps': 0.3,
       'clip_min': 0.,
-      'nb_iter':5,
+      'nb_iter':1,
       'clip_max': 1.,
       'ord':2
   }
@@ -158,14 +158,13 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
       do_eval(preds, x_train, y_train, 'train_clean_train_clean_eval')
     # Initialize the Basic Iterative Method (BIM) attack object and
     # graph
-    bim = BasicIterativeMethod(model, sess=sess)
-    bim_params["nb_iter"] = bim_params["nb_iter"] + 2
-    adv_x = bim.generate(x, **bim_params)
-    preds_adv = model.get_logits(adv_x)
-
+    for i in range(3):
+        bim = BasicIterativeMethod(model, sess=sess)
+        adv_x = bim.generate(x, **bim_params)
+        preds_adv = model.get_logits(adv_x)
+        bim_params["nb_iter"] = bim_params["nb_iter"] + 2
     # Evaluate the accuracy of the MNIST model on adversarial examples
-    pdb.set_trace()
-    do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
+        do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
 
     # Calculate training error
     if testing:
