@@ -111,10 +111,10 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   }
   eval_params = {'batch_size': batch_size}
   fgsm_params = {
-      'eps': 0.3,
+      'eps': 0.1,
       'clip_min': 0.,
       'clip_max': 1.,
-      'ord':2
+      'ord':np.inf
   }
   rng = np.random.RandomState([2017, 8, 30])
 
@@ -155,12 +155,21 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     # Initialize the Fast Gradient Sign Method (FGSM) attack object and
     # graph
     fgsm = FastGradientMethod(model, sess=sess)
+    """
     adv_x = fgsm.generate(x, **fgsm_params)
     preds_adv = model.get_logits(adv_x)
 
     # Evaluate the accuracy of the MNIST model on adversarial examples
     do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
+    """
+    for i in range(10):
+        adv_x = fgsm.generate(x, **fgsm_params)
+        preds_adv = model.get_logits(adv_x)
 
+        print("eps:%f" % fgsm_params["eps"])
+    # Evaluate the accuracy of the MNIST model on adversarial examples
+        do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
+        fgsm_params['eps'] = fgsm_params['eps'] + 0.1
     # Calculate training error
     if testing:
       do_eval(preds_adv, x_train, y_train, 'train_clean_train_adv_eval')
