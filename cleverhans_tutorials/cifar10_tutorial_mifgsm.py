@@ -162,14 +162,14 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     # graph
     mifgsm = MomentumIterativeMethod(model, sess=sess)
 
-    for i in range(10):
+    for i in range(20):
         adv_x = mifgsm.generate(x, **mifgsm_params)
         preds_adv = model.get_logits(adv_x)
 
         print("eps:%f" % mifgsm_params["eps"])
     # Evaluate the accuracy of the MNIST model on adversarial examples
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-        mifgsm_params['eps'] = mifgsm_params['eps'] + 0.1
+        mifgsm_params['eps'] = mifgsm_params['eps'] + 0.02
 
 
     # Calculate training error
