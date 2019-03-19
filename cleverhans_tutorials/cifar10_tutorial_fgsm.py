@@ -111,7 +111,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   }
   eval_params = {'batch_size': batch_size}
   fgsm_params = {
-      'eps': 0.1,
+      'eps': 0,
       'clip_min': 0.,
       'clip_max': 1.,
       'ord':np.inf
@@ -169,7 +169,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
         print("eps:%f" % fgsm_params["eps"])
     # Evaluate the accuracy of the MNIST model on adversarial examples
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-        fgsm_params['eps'] = fgsm_params['eps'] + 0.1
+        fgsm_params['eps'] = fgsm_params['eps'] + 0.01
     # Calculate training error
     if testing:
       do_eval(preds_adv, x_train, y_train, 'train_clean_train_adv_eval')
