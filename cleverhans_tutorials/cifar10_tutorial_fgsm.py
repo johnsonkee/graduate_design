@@ -174,10 +174,12 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     if testing:
       do_eval(preds_adv, x_train, y_train, 'train_clean_train_adv_eval')
 
-    print('Repeating the process, using adversarial training')
 
   if not adversarial_training:
       return report
+
+  print('Repeating the process, using adversarial training')
+
   # Create a new model and train it to be robust to FastGradientMethod
   model2 = ModelAllConvolutional('model2', nb_classes, nb_filters,
                                  input_shape=[32, 32, 3])
