@@ -248,4 +248,5 @@ if __name__ == '__main__':
                     ('If True, backprop through adversarial example '
                      'construction process during adversarial training'))
 
+  print("Using FGSM method")
   tf.app.run()

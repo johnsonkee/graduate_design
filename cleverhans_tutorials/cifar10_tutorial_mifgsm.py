@@ -113,8 +113,9 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   }
   eval_params = {'batch_size': batch_size}
   mifgsm_params = {
-      'eps': 0.02,
+      'eps': 0.5,
       'clip_min': 0.,
+      'eps_iter':0.002,
       'nb_iter':10,
       'clip_max': 1.,
       'ord':np.inf
@@ -169,7 +170,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
         print("eps:%f" % mifgsm_params["eps"])
     # Evaluate the accuracy of the MNIST model on adversarial examples
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-        mifgsm_params['eps'] = mifgsm_params['eps'] + 0.02
+        mifgsm_params['eps'] = mifgsm_params['eps'] + 0.002
 
 
     # Calculate training error
@@ -247,6 +248,6 @@ if __name__ == '__main__':
   flags.DEFINE_bool('backprop_through_attack', BACKPROP_THROUGH_ATTACK,
                     ('If True, backprop through adversarial example '
                      'construction process during adversarial training'))
-  print("Using BIM method")
+  print("Using Momentum I-FGSM method")
 
   tf.app.run()
