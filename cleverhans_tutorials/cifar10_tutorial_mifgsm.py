@@ -113,7 +113,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   }
   eval_params = {'batch_size': batch_size}
   mifgsm_params = {
-      'eps': 0.1,
+      'eps': 0.02,
       'clip_min': 0.,
       'nb_iter':10,
       'clip_max': 1.,
