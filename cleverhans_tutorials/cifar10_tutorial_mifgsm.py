@@ -167,10 +167,10 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
         adv_x = mifgsm.generate(x, **mifgsm_params)
         preds_adv = model.get_logits(adv_x)
 
-        print("eps:%f" % mifgsm_params["eps"])
+        print("eps:%0.2f" % (mifgsm_params["eps_iter"]*mifgsm_params['nb_iter']))
     # Evaluate the accuracy of the MNIST model on adversarial examples
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-        mifgsm_params['eps'] = mifgsm_params['eps'] + 0.002
+        mifgsm_params['eps_iter'] = mifgsm_params['eps_iter'] + 0.002
 
 
     # Calculate training error

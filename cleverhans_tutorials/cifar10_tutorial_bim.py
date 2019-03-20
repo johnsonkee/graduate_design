@@ -164,7 +164,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
         adv_x = bim.generate(x, **bim_params)
         preds_adv = model.get_logits(adv_x)
     # Evaluate the accuracy of the MNIST model on adversarial examples
-        print("eps:%f" % bim_params["eps_iter"]*bim_params['nb_iter'])
+        print("eps:%0.2f" % (bim_params["eps_iter"]*bim_params['nb_iter']))
         do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
         bim_params["eps_iter"] = bim_params["eps_iter"] + 0.002
 
