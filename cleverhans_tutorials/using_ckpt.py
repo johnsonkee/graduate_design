@@ -12,6 +12,9 @@ from cleverhans.utils_tf import model_eval
 
 import pdb
 
+
+
+
 def restore_model_evaluate(sess):
 
     saver = tf.train.import_meta_graph('simple_cifar10.ckpt.meta')
