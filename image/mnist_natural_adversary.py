@@ -14,6 +14,7 @@ plt.style.use('seaborn-deep')
 import tflib.mnist
 from mnist_wgan_inv import MnistWganInv
 from search import iterative_search, recursive_search
+import pickle
 
 
 def save_adversary(adversary, filename):
@@ -74,7 +75,9 @@ if __name__ == '__main__':
 
     graph_GAN = tf.Graph()
     with graph_GAN.as_default():
-        sess_GAN = tf.Session()
+        gpu_options = tf.GPUOptions(allow_growth=True)
+        config = tf.ConfigProto(gpu_options=gpu_options)
+        sess_GAN = tf.Session(config=config)
         model_GAN = MnistWganInv()
         saver_GAN = tf.train.Saver(max_to_keep=100)
         saver_GAN = tf.train.import_meta_graph('{}.meta'.format(args.gan_path))
@@ -102,9 +105,12 @@ if __name__ == '__main__':
 
     _, _, test_data = tflib.mnist.load_data()
 
-    for i in range(10):
-        x = test_data[0][i]
-        y = test_data[1][i]
+    x_adv = []
+    y_origin = []
+
+    for i in range(500):
+        x = test_data[0][i+100]
+        y = test_data[1][i+100]
         y_pred = cla_fn(x)[0]
         # only modify those samples which are correctly classified
         if y_pred != y:
@@ -116,6 +122,12 @@ if __name__ == '__main__':
             filename = 'mnist_{}_iterative_{}.png'.format(str(i).zfill(4), args.classifier)
         else:
             filename = 'mnist_{}_recursive_{}.png'.format(str(i).zfill(4), args.classifier)
+        x_adv.append(adversary["x_adv"])
+        y_origin.append(adversary["y"])
+        # save_adversary(adversary, os.path.join(args.output_path, filename))
+        if i % 50 == 0:
+            pickle.dump(x_adv,open("../../server_copyin/x_adv500.pkl","wb"))
+            pickle.dump(y_origin,open("../../server_copyin/y_origin500.pkl","wb"))
 
-        save_adversary(adversary, os.path.join(args.output_path, filename))
 
+    

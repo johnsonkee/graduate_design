@@ -17,7 +17,9 @@ if __name__ == '__main__':
 
     graph_GAN = tf.Graph()
     with graph_GAN.as_default():
-        sess_GAN = tf.Session()
+        gpu_options = tf.GPUOptions(allow_growth=True)
+        config = tf.ConfigProto(gpu_options=gpu_options)
+        sess_GAN = tf.Session(config=config)
         model_GAN = MnistWganInv()
         saver_GAN = tf.train.Saver(max_to_keep=100)
         saver_GAN = tf.train.import_meta_graph('{}.meta'.format(args.gan_path))
@@ -30,8 +32,15 @@ if __name__ == '__main__':
         return z_p
 
     z_adv = []
-    x_adv = pickle.load(open("adv100.pkl","rb"))
-    for i in range(len(x_adv)):
-        z_adv.append(inv_fn(x_adv[i]))
-    pdb.set_trace()
+    x_adv = pickle.load(open("../../server_copyin/adv90.pkl","rb"))
+
+    z_origin = []
+    y_origin = []
+    _, _, test_data = tflib.mnist.load_data()
+
+    for i in range(len(test_data[0])):
+        z_origin.append(inv_fn(test_data[0][i]))
+        y_origin.append(test_data[1][i])
+    pickle.dump(z_origin,open("../../server_copyin/z_origin_all.pkl","wb"))
+    pickle.dump(y_origin,open("../../server_copyin/y_origin_all.pkl","wb"))
 
