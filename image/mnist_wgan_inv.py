@@ -75,8 +75,6 @@ class MnistWganInv(object):
     def generate(self, z):
         assert z.shape[1] == self.z_dim
 
-        pdb.set_trace()
-
         output = tflib.ops.linear.Linear('Generator.Input', self.z_dim,
                                          self.latent_dim * 64, z)
         output = tf.nn.relu(output)
@@ -241,7 +239,7 @@ if __name__ == '__main__':
         images = noise = gen_cost = dis_cost = inv_cost = None
         dis_cost_lst, inv_cost_lst = [], []
         for iteration in range(args.iterations):
-            for i in range(args.dis_iter):
+            for i in range(args.dis_iter): # do some discrimination and one generation
                 noise = np.random.randn(args.batch_size, args.z_dim)
                 images = inf_train_gen().next()
 
