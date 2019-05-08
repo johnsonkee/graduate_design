@@ -14,37 +14,24 @@ import time
 import pdb
 from IPython import display
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
-
-train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
-train_images = (train_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
-test_images = test_images.reshape(test_images.shape[0], 28, 28,1).astype('float32')
-test_images = (test_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
-
-BUFFER_SIZE = 60000
-BATCH_SIZE = 256
-
-train_labels = keras.utils.to_categorical(train_labels).reshape(-1,10)
-
-# Batch and shuffle the data
-# no shuffle
-train_images_dataset = tf.data.Dataset.from_tensor_slices(train_images).batch(BATCH_SIZE)
-train_labels_dataset = tf.data.Dataset.from_tensor_slices(train_labels).batch(BATCH_SIZE)
-# shuffle
-#train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
 # the input is picture x
 def make_generator_model():
+    """
+    :return: tensor:[None,784]
+    """
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', use_bias=False,
-                            input_shape=[28, 28, 1]))
+    # the images has been flatten to 784, and the one-hot labels are added.
+    model.add(layers.Dense(28*28, use_bias=False, input_shape=(794,)))
+    model.add(layers.Reshape((28,28,1)))
+    assert model.output_shape == (None, 28, 28, 1)  # Note: None is the batch size
+
+    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 14, 14, 64)  # Note:None is the size of batch
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
 
-    model.add(layers.Conv2D(128, (5, 5), strides=(2, 2), padding='same', use_bias=False,
-                            input_shape=[28, 28, 1]))
+    model.add(layers.Conv2D(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
     assert model.output_shape == (None, 7, 7, 128)
     model.add(layers.BatchNormalization())
     model.add(layers.LeakyReLU())
@@ -72,8 +59,12 @@ def make_generator_model():
 
 def make_discriminator_model():
     model = tf.keras.Sequential()
-    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
-                                     input_shape=[28, 28, 1]))
+    # the images has been flatten to 784, and the one-hot labels are adde d.
+    model.add(layers.Dense(28*28, use_bias=False, input_shape=(794,)))
+    model.add(layers.Reshape((28,28,1)))
+    assert model.output_shape == (None, 28, 28, 1)  # Note: None is the batch size
+
+    model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same'))
     model.add(layers.LeakyReLU())
     model.add(layers.Dropout(0.3))
 
@@ -86,12 +77,7 @@ def make_discriminator_model():
 
     return model
 
-generator = make_generator_model()
-discriminator = make_discriminator_model()
 
-classifier_path = "./models/CNN_mnist.h5"
-classifier = keras.models.load_model(classifier_path)
-classifier.evaluate(test_images,test_labels,verbose=1)
 
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
@@ -133,29 +119,18 @@ def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
 
     return total_loss
 
-generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
-
-checkpoint_dir = './training_checkpoints'
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
-                                 discriminator_optimizer=discriminator_optimizer,
-                                 generator=generator,
-                                 discriminator=discriminator)
-
-
 # Notice the use of `tf.function`
 # This annotation causes the function to be "compiled".
 @tf.function
 def train_step(images, labels):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         # pdb.set_trace()
-        perturbation = generator(images, training=True)
-        generated_images = images + perturbation
+        perturbation = generator(tf.concat([images,labels],1), training=True)
+        generated_images = images + tf.reshape(perturbation,[-1,784])
 
-        real_output = discriminator(images, training=True)
-        fake_output = discriminator(generated_images, training=True)
-        preds = classifier(generated_images)
+        real_output = discriminator(tf.concat([images,labels],1), training=True)
+        fake_output = discriminator(tf.concat([generated_images,labels],1), training=True)
+        preds = classifier(tf.reshape(generated_images,[-1,28,28,1]))
 
         class_loss = classifier_loss(preds, labels, is_targeted=False)
         gen_loss = generator_loss(fake_output)
@@ -199,8 +174,8 @@ def train(dataset, labels, epochs):
         # Save the model every 15 epochs
         if (epoch + 1) % 15 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
-            generator.save("generator_without_cgan.h5")
-            discriminator.save("discriminator_without_cgan.h5")
+            generator.save("generator_cgan.h5")
+            discriminator.save("discriminator_cgan.h5")
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
@@ -209,6 +184,45 @@ def train(dataset, labels, epochs):
     display.clear_output(wait=True)
     # generate_and_save_images(generator,epochs)
 
-EPOCHS = 800
+if __name__ == '__main__':
 
-train(train_images_dataset,train_labels_dataset,EPOCHS)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+    (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
+
+    train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
+    train_images = (train_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+    test_images = test_images.reshape(test_images.shape[0], 28, 28, 1).astype('float32')
+    test_images = (test_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+
+    train_images = train_images.reshape(-1, 784)
+    train_labels = keras.utils.to_categorical(train_labels).reshape(-1, 10)
+
+    BUFFER_SIZE = 60000
+    BATCH_SIZE = 256
+    # Batch and shuffle the data
+    # no shuffle
+    train_images_dataset = tf.data.Dataset.from_tensor_slices(train_images).batch(BATCH_SIZE)
+    train_labels_dataset = tf.data.Dataset.from_tensor_slices(train_labels).batch(BATCH_SIZE)
+    # shuffle
+    # train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+
+    generator = make_generator_model()
+    discriminator = make_discriminator_model()
+
+    classifier_path = "./models/CNN_mnist.h5"
+    classifier = keras.models.load_model(classifier_path)
+    classifier.evaluate(test_images, test_labels, verbose=1)
+
+    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+
+    checkpoint_dir = './training_checkpoints_cgan'
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+    checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
+                                     discriminator_optimizer=discriminator_optimizer,
+                                     generator=generator,
+                                     discriminator=discriminator)
+
+    EPOCHS = 800
+    train(train_images_dataset,train_labels_dataset,EPOCHS)
