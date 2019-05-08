@@ -90,7 +90,7 @@ def discriminator_loss(real_output, fake_output):
 def generator_loss(fake_output):
     return cross_entropy(tf.ones_like(fake_output), fake_output)
 
-def classifier_loss(preds, target, is_targeted=True):
+def classifier_loss(preds, target, is_targeted=False):
     # if it is targeted attack
     # 有一种做法是把target(integer)转化成onehot
     # normal loss:
