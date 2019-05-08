@@ -69,8 +69,6 @@ def make_generator_model():
 
     return model
 
-generator = make_generator_model()
-
 def make_discriminator_model():
     model = tf.keras.Sequential()
     model.add(layers.Conv2D(64, (5, 5), strides=(2, 2), padding='same',
@@ -87,6 +85,7 @@ def make_discriminator_model():
 
     return model
 
+generator = make_generator_model()
 discriminator = make_discriminator_model()
 
 classifier_path = "./models/CNN_mnist.h5"
@@ -107,9 +106,18 @@ def generator_loss(fake_output):
 def classifier_loss(preds, target, is_targeted=True):
     # if it is targeted attack
     # 有一种做法是把target(integer)转化成onehot
+    # normal loss:
+    """
     if is_targeted:
         return cross_entropy(preds, target)
     return -cross_entropy(preds, target)
+    """
+    # C&W loss
+    real = tf.reduce_sum(target * preds, 1)
+    other = tf.reduce_max((1 - target) * preds - (target * 10000), 1)
+    if is_targeted:
+        return tf.reduce_sum(tf.maximum(0.0, other - real))
+    return tf.reduce_sum(tf.maximum(0.0, real - other))
 
 def perturb_loss(perturbation, thresh=0.3):
     zeros = tf.zeros((tf.shape(perturbation)[0]))
@@ -117,19 +125,9 @@ def perturb_loss(perturbation, thresh=0.3):
         tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
 
 
-def total_loss(f_loss, gan_loss, perturb_loss, alpha, beta):
+def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
     """
-    x:the input image
-    gx:generator(x),the same as perturbation,so the fake
-       images is x+gx
-    real_output:dis(x)
-    fake_output:dis(x+gx)
-    preds:classifier(x+gx)
-    target:the target of targeted attack
-    is_targeted:whether it is targeted attack or not
     """
-    alpha = 1
-    beta = 5
     total_loss = f_loss + alpha * gan_loss + beta * perturb_loss
 
     return total_loss
