@@ -13,6 +13,7 @@ from tensorflow.keras import layers
 import time
 import pdb
 from IPython import display
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
 
@@ -135,7 +136,7 @@ def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
 generator_optimizer = tf.keras.optimizers.Adam(1e-4)
 discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
-checkpoint_dir = './training_checkpoints'
+checkpoint_dir = './training_checkpoints_c&wloss'
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                  discriminator_optimizer=discriminator_optimizer,
