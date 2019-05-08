@@ -184,34 +184,32 @@ def generate_and_save_images(model, epoch, test_input):
       plt.axis('off')
 
   plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
-  plt.show()
+  # plt.show()
 
 def train(dataset, labels, epochs):
     for epoch in range(epochs):
         start = time.time()
 
-        wxz_i = 1
         for image_batch, label_batch in zip(dataset, labels):
-            print(wxz_i)
             train_step(image_batch, label_batch)
-            wxz_i = wxz_i + 1
 
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
-        generate_and_save_images(generator,
-                                 epoch + 1)
+        # generate_and_save_images(generator,epoch + 1,test_images[1])
 
         # Save the model every 15 epochs
         if (epoch + 1) % 15 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
+            generator.save("generator.h5")
+            discriminator.save("discriminator.h5")
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
     # Generate after the final epoch
+    
     display.clear_output(wait=True)
-    generate_and_save_images(generator,
-                             epochs)
+    # generate_and_save_images(generator,epochs)
 
-EPOCHS = 50
+EPOCHS = 8000
 
 train(train_images_dataset,train_labels_dataset,EPOCHS)
