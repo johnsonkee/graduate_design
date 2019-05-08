@@ -208,6 +208,6 @@ def train(dataset, labels, epochs):
     display.clear_output(wait=True)
     # generate_and_save_images(generator,epochs)
 
-EPOCHS = 8000
+EPOCHS = 800
 
 train(train_images_dataset,train_labels_dataset,EPOCHS)
