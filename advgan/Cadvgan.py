@@ -1,13 +1,9 @@
 # tensorflow2.0.0a0
 from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
-import glob
-# import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-# pip install PIL
-# import PIL
 from tensorflow import keras
 from tensorflow.keras import layers
 import time
@@ -110,7 +106,7 @@ def perturb_loss(perturbation, thresh=0.3):
         tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
 
 
-def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
+def total_loss(f_loss, gan_loss, perturb_loss, alpha=1.0, beta=5.0):
     """
     """
     total_loss = f_loss + alpha * gan_loss + beta * perturb_loss
@@ -134,7 +130,7 @@ def train_step(images, labels):
         gen_loss = generator_loss(fake_output)
         pert_loss = perturb_loss(perturbation, thresh=0.3)
 
-        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=1, beta=2)
+        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=0.5, beta=1.0)
         disc_loss = discriminator_loss(real_output, fake_output)
 
     gradients_of_generator = gen_tape.gradient(all_loss, generator.trainable_variables)
@@ -172,8 +168,8 @@ def train(dataset, labels, epochs):
         # Save the model every 15 epochs
         if (epoch + 1) % 15 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
-            generator.save("generator_cgan.h5")
-            discriminator.save("discriminator_cgan.h5")
+            generator.save("generator_cgan_a05_b1.h5")
+            discriminator.save("discriminator_cgan_a05_b1.h5")
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
@@ -207,8 +203,13 @@ if __name__ == '__main__':
     # shuffle
     # train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
-    generator = make_generator_model()
-    discriminator = make_discriminator_model()
+    use_model = True
+    if use_model:
+        generator = keras.models.load_model("generator_cgan.h5")
+        discriminator = keras.models.load_model("discriminator_cgan.h5")
+    else:
+        generator = make_generator_model()
+        discriminator = make_discriminator_model()
 
     classifier_path = "./models/CNN_mnist.h5"
     classifier = keras.models.load_model(classifier_path)
