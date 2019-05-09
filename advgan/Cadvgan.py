@@ -77,8 +77,6 @@ def make_discriminator_model():
 
     return model
 
-
-
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def discriminator_loss(real_output, fake_output):
@@ -187,6 +185,8 @@ def train(dataset, labels, epochs):
 if __name__ == '__main__':
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    # use the gpu memory depending on our needs
+    tf.config.gpu.set_per_process_memory_growth(enabled=True)
 
     (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
 

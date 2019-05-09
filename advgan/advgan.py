@@ -13,27 +13,6 @@ from tensorflow.keras import layers
 import time
 import pdb
 from IPython import display
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
-
-train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
-train_images = (train_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
-test_images = test_images.reshape(test_images.shape[0], 28, 28,1).astype('float32')
-test_images = (test_images - 127.5) / 127.5 # Normalize the images to [-1, 1]
-
-BUFFER_SIZE = 60000
-BATCH_SIZE = 256
-
-train_labels = keras.utils.to_categorical(train_labels).reshape(-1,10)
-
-# Batch and shuffle the data
-# no shuffle
-train_images_dataset = tf.data.Dataset.from_tensor_slices(train_images).batch(BATCH_SIZE)
-train_labels_dataset = tf.data.Dataset.from_tensor_slices(train_labels).batch(BATCH_SIZE)
-# shuffle
-#train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
 # the input is picture x
 def make_generator_model():
@@ -87,13 +66,6 @@ def make_discriminator_model():
 
     return model
 
-generator = make_generator_model()
-discriminator = make_discriminator_model()
-
-classifier_path = "./models/CNN_mnist.h5"
-classifier = keras.models.load_model(classifier_path)
-classifier.evaluate(test_images,test_labels,verbose=1)
-
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def discriminator_loss(real_output, fake_output):
@@ -133,16 +105,6 @@ def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
     total_loss = f_loss + alpha * gan_loss + beta * perturb_loss
 
     return total_loss
-
-generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
-
-checkpoint_dir = './training_checkpoints_c&wloss'
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
-                                 discriminator_optimizer=discriminator_optimizer,
-                                 generator=generator,
-                                 discriminator=discriminator)
 
 
 # Notice the use of `tf.function`
@@ -210,6 +172,47 @@ def train(dataset, labels, epochs):
     display.clear_output(wait=True)
     # generate_and_save_images(generator,epochs)
 
-EPOCHS = 800
+if __name__ == "__main__":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-train(train_images_dataset,train_labels_dataset,EPOCHS)
+    (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
+
+    train_images = train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32')
+    train_images = (train_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+    test_images = test_images.reshape(test_images.shape[0], 28, 28, 1).astype('float32')
+    test_images = (test_images - 127.5) / 127.5  # Normalize the images to [-1, 1]
+
+    BUFFER_SIZE = 60000
+    BATCH_SIZE = 256
+    EPOCHS = 800
+
+    train_labels = keras.utils.to_categorical(train_labels).reshape(-1, 10)
+
+    # Batch and shuffle the data
+    # no shuffle
+    train_images_dataset = tf.data.Dataset.from_tensor_slices(train_images).batch(BATCH_SIZE)
+    train_labels_dataset = tf.data.Dataset.from_tensor_slices(train_labels).batch(BATCH_SIZE)
+    # shuffle
+    # train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+
+    generator = make_generator_model()
+    discriminator = make_discriminator_model()
+
+    classifier_path = "./models/CNN_mnist.h5"
+    classifier = keras.models.load_model(classifier_path)
+    classifier.evaluate(test_images, test_labels, verbose=1)
+
+    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+
+    checkpoint_dir = './training_checkpoints_c&wloss'
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+    checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
+                                     discriminator_optimizer=discriminator_optimizer,
+                                     generator=generator,
+                                     discriminator=discriminator)
+
+
+
+    train(train_images_dataset, train_labels_dataset, EPOCHS)
+
