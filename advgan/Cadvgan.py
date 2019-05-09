@@ -130,14 +130,17 @@ def train_step(images, labels):
         gen_loss = generator_loss(fake_output)
         pert_loss = perturb_loss(perturbation, thresh=0.3)
 
-        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=0.5, beta=1.0)
+        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=1, beta=2)
         disc_loss = discriminator_loss(real_output, fake_output)
+
 
     gradients_of_generator = gen_tape.gradient(all_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
 
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+    return all_loss, disc_loss
 
 def generate_and_save_images(model, epoch, test_input):
   # Notice `training` is set to False.
@@ -159,8 +162,8 @@ def train(dataset, labels, epochs):
         start = time.time()
 
         for image_batch, label_batch in zip(dataset, labels):
-            train_step(image_batch, label_batch)
-
+            all_loss, disc_loss = train_step(image_batch, label_batch)
+        print("gen_loss:{},disc_loss:{}".format(all_loss,disc_loss))
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
         # generate_and_save_images(generator,epoch + 1,test_images[1])
@@ -168,8 +171,8 @@ def train(dataset, labels, epochs):
         # Save the model every 15 epochs
         if (epoch + 1) % 15 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
-            generator.save("generator_cgan_a05_b1.h5")
-            discriminator.save("discriminator_cgan_a05_b1.h5")
+            generator.save("generator_cgan_a1_b2.h5")
+            discriminator.save("discriminator_cgan_a1_b2.h5")
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
