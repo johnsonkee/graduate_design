@@ -174,6 +174,7 @@ def train(dataset, labels, epochs):
 
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    tf.config.gpu.set_per_process_memory_growth(enabled=True)
 
     (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
 
