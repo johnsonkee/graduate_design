@@ -160,7 +160,7 @@ def train(dataset, labels, epochs):
         # generate_and_save_images(generator,epoch + 1,test_images[1])
 
         # Save the model every 15 epochs
-        if (epoch + 1) % 15 == 0:
+        if (epoch + 1) % 50 == 0:
             checkpoint.save(file_prefix=checkpoint_prefix)
             generator.save("generator_without_cgan.h5")
             discriminator.save("discriminator_without_cgan.h5")
@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
     BUFFER_SIZE = 60000
     BATCH_SIZE = 256
-    EPOCHS = 800
+    EPOCHS = 3000
 
     train_labels = keras.utils.to_categorical(train_labels).reshape(-1, 10)
 
