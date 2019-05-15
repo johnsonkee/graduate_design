@@ -156,7 +156,7 @@ def train(dataset, labels, epochs):
         for image_batch, label_batch in zip(dataset, labels):
             gen_loss,disc_loss = train_step(image_batch, label_batch)
         print("gen_loss:{},disc_loss:{}".
-              format(round(gen_loss,4),round(disc_loss,4)))
+              format(round(gen_loss.numpy(),4),round(disc_loss.numpy(),4)))
 
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
