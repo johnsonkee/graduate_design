@@ -130,8 +130,9 @@ def train_step(images, labels):
     gradients_of_generator = gen_tape.gradient(all_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
 
-    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+    return all_loss,disc_loss
 
 def generate_and_save_images(model, epoch, test_input):
   # Notice `training` is set to False.
@@ -153,7 +154,8 @@ def train(dataset, labels, epochs):
         start = time.time()
 
         for image_batch, label_batch in zip(dataset, labels):
-            train_step(image_batch, label_batch)
+            gen_loss,disc_loss = train_step(image_batch, label_batch)
+        print("gen_loss:{},disc_loss:{}".format(gen_loss,disc_loss))
 
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
