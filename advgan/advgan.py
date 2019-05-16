@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     BUFFER_SIZE = 60000
     BATCH_SIZE = 256
-    EPOCHS = 3000
+    EPOCHS = 1500
 
     train_labels = keras.utils.to_categorical(train_labels).reshape(-1, 10)
 
@@ -212,8 +212,9 @@ if __name__ == "__main__":
     classifier = keras.models.load_model(classifier_path)
     classifier.evaluate(test_images, test_labels, verbose=1)
 
-    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    # https://github.com/caogang/wgan-gp/blob/master/gan_mnist.py Line163
+    generator_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-4,beta_1 = 0.5,beta_2 = 0.9)
+    discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-4,beta_1 = 0.5,beta_2 = 0.9)
 
     checkpoint_dir = './training_checkpoints_c&wloss'
     checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")

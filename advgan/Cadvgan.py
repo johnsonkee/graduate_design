@@ -214,7 +214,7 @@ if __name__ == '__main__':
     # shuffle
     # train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
-    use_model = True
+    use_model = False
     if use_model:
         generator = keras.models.load_model("generator_cgan.h5")
         discriminator = keras.models.load_model("discriminator_cgan.h5")
@@ -226,8 +226,9 @@ if __name__ == '__main__':
     classifier = keras.models.load_model(classifier_path)
     classifier.evaluate(test_images, test_labels, verbose=1)
 
-    generator_optimizer = tf.keras.optimizers.Adam(1e-4)
-    discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
+    # https://github.com/caogang/wgan-gp/blob/master/gan_mnist.py Line163
+    generator_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-4,beta_1 = 0.5,beta_2 = 0.9)
+    discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-4,beta_1 = 0.5,beta_2 = 0.9)
 
     checkpoint_dir = './training_checkpoints_cgan'
     checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
@@ -236,5 +237,5 @@ if __name__ == '__main__':
                                      generator=generator,
                                      discriminator=discriminator)
 
-    EPOCHS = 800
+    EPOCHS = 1500
     train(train_images_dataset,train_labels_dataset,EPOCHS)
