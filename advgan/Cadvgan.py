@@ -206,7 +206,7 @@ if __name__ == '__main__':
     # shuffle
     # train_dataset = tf.data.Dataset.from_tensor_slices(train_images).shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
-    use_model = True
+    use_model = True 
     if use_model:
         generator = keras.models.load_model("generator_cgan.h5")
         discriminator = keras.models.load_model("discriminator_cgan.h5")
