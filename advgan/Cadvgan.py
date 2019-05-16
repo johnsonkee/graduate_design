@@ -9,6 +9,7 @@ from tensorflow.keras import layers
 import time
 import pdb
 from IPython import display
+import pandas
 
 
 # the input is picture x
@@ -102,6 +103,7 @@ def classifier_loss(preds, target, is_targeted=False):
 
 def perturb_loss(perturbation, thresh=0.3):
     zeros = tf.zeros((tf.shape(perturbation)[0]))
+    # norm-2
     return tf.reduce_mean(
         tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
 
@@ -116,7 +118,7 @@ def total_loss(f_loss, gan_loss, perturb_loss, alpha=1.0, beta=5.0):
 # Notice the use of `tf.function`
 # This annotation causes the function to be "compiled".
 @tf.function
-def train_step(images, labels):
+def train_step(images, labels, alpha, beta):
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
         # pdb.set_trace()
         perturbation = generator(tf.concat([images,labels],1), training=True)
@@ -130,7 +132,7 @@ def train_step(images, labels):
         gen_loss = generator_loss(fake_output)
         pert_loss = perturb_loss(perturbation, thresh=0.3)
 
-        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=1, beta=2)
+        all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=alpha, beta=beta)
         disc_loss = discriminator_loss(real_output, fake_output)
 
 
@@ -158,12 +160,14 @@ def generate_and_save_images(model, epoch, test_input):
   # plt.show()
 
 def train(dataset, labels, epochs):
+    record_loss = []
     for epoch in range(epochs):
         start = time.time()
 
         for image_batch, label_batch in zip(dataset, labels):
-            all_loss, disc_loss = train_step(image_batch, label_batch)
-        print("gen_loss:{},disc_loss:{}".format(all_loss,disc_loss))
+            all_loss, disc_loss = train_step(image_batch, label_batch,alpha=1,beta=2)
+        print("gen_loss:{},disc_loss:{}".format(all_loss.numpy(),disc_loss.numpy()))
+        record_loss.append([epoch+1,all_loss.numpy(),disc_loss.numpy()])
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
         # generate_and_save_images(generator,epoch + 1,test_images[1])
@@ -176,9 +180,13 @@ def train(dataset, labels, epochs):
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
-    # Generate after the final epoch
-    
+    df = pandas.DataFrame(record_loss,index=False,columns=["epoch","gen_loss","disc_loss"])
+    if not os.path.exists("log"):
+        os.makedirs("log")
+    df.to_csv("log/Cadvgan_loss.csv")
     display.clear_output(wait=True)
+    # Generate after the final epoch
+
     # generate_and_save_images(generator,epochs)
 
 if __name__ == '__main__':
