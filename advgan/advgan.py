@@ -118,12 +118,23 @@ def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
 # This annotation causes the function to be "compiled".
 @tf.function
 def train_step(images, labels):
-    with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+    with tf.GradientTape() as disc_tape:
         # pdb.set_trace()
         perturbation = generator(images, training=True)
         generated_images = images + perturbation
 
         real_output = discriminator(images, training=True)
+        fake_output = discriminator(generated_images, training=True)
+
+        disc_loss = discriminator_loss(real_output, fake_output)
+
+    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
+    discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+
+    with tf.GradientTape() as gen_tape:
+        perturbation = generator(images, training=True)
+        generated_images = images + perturbation
+
         fake_output = discriminator(generated_images, training=True)
         preds = classifier(generated_images)
 
@@ -132,12 +143,7 @@ def train_step(images, labels):
         pert_loss = perturb_loss(perturbation, thresh=0.3)
 
         all_loss = total_loss(class_loss, gen_loss, pert_loss, alpha=1, beta=2)
-        disc_loss = discriminator_loss(real_output, fake_output)
-
     gradients_of_generator = gen_tape.gradient(all_loss, generator.trainable_variables)
-    gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
-
-    discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
     generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     return all_loss,disc_loss
 
