@@ -13,6 +13,7 @@ from tensorflow.keras import layers
 import time
 import pdb
 from IPython import display
+import pandas
 
 # the input is picture x
 def make_generator_model():
@@ -150,6 +151,7 @@ def generate_and_save_images(model, epoch, test_input):
   # plt.show()
 
 def train(dataset, labels, epochs):
+    record_loss = []
     for epoch in range(epochs):
         start = time.time()
 
@@ -157,6 +159,7 @@ def train(dataset, labels, epochs):
             gen_loss,disc_loss = train_step(image_batch, label_batch)
         print("gen_loss:{},disc_loss:{}".
               format(round(gen_loss.numpy(),4),round(disc_loss.numpy(),4)))
+        record_loss.append([epoch+1,gen_loss.numpy(),disc_loss.numpy()])
 
         # Produce images for the GIF as we go
         display.clear_output(wait=True)
@@ -171,12 +174,15 @@ def train(dataset, labels, epochs):
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
     # Generate after the final epoch
-    
+    df = pandas.DataFrame(record_loss,index=False,columns=["epoch","gen_loss","disc_loss"])
+    if not os.path.exists("log"):
+        os.makedirs("log")
+    df.to_csv("log/advgan_loss.csv")
     display.clear_output(wait=True)
     # generate_and_save_images(generator,epochs)
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     tf.config.gpu.set_per_process_memory_growth(enabled=True)
 
     (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
