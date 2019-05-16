@@ -229,6 +229,6 @@ if __name__ == "__main__":
                                      discriminator_optimizer=discriminator_optimizer,
                                      generator=generator,
                                      discriminator=discriminator)
-    EPOCHS = 1000
+    EPOCHS = 700
     train(train_images_dataset, train_labels_dataset, EPOCHS)
 
