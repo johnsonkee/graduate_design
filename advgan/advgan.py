@@ -96,9 +96,15 @@ def classifier_loss(preds, target, is_targeted=True):
 
 def perturb_loss(perturbation, thresh=0.3):
     zeros = tf.zeros((tf.shape(perturbation)[0]))
+    # norm-2
+    """
     return tf.reduce_mean(
         tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
-
+    """
+    # norm-inf
+    return tf.reduce_mean(
+        tf.maximum(zeros,
+                   tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), ord=np.inf, axis=1) - thresh))
 
 def total_loss(f_loss, gan_loss, perturb_loss, alpha=1, beta=5):
     """
@@ -170,14 +176,15 @@ def train(dataset, labels, epochs):
             checkpoint.save(file_prefix=checkpoint_prefix)
             generator.save("generator_without_cgan.h5")
             discriminator.save("discriminator_without_cgan.h5")
+            df = pandas.DataFrame(record_loss, columns=["epoch", "gen_loss", "disc_loss"])
+            if not os.path.exists("log"):
+                os.makedirs("log")
+            df.to_csv("log/advgan_loss.csv",index=False)
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
     # Generate after the final epoch
-    df = pandas.DataFrame(record_loss,index=False,columns=["epoch","gen_loss","disc_loss"])
-    if not os.path.exists("log"):
-        os.makedirs("log")
-    df.to_csv("log/advgan_loss.csv")
+
     display.clear_output(wait=True)
     # generate_and_save_images(generator,epochs)
 
@@ -194,7 +201,7 @@ if __name__ == "__main__":
 
     BUFFER_SIZE = 60000
     BATCH_SIZE = 256
-    EPOCHS = 1500
+
 
     train_labels = keras.utils.to_categorical(train_labels).reshape(-1, 10)
 
@@ -222,8 +229,6 @@ if __name__ == "__main__":
                                      discriminator_optimizer=discriminator_optimizer,
                                      generator=generator,
                                      discriminator=discriminator)
-
-
-
+    EPOCHS = 1000
     train(train_images_dataset, train_labels_dataset, EPOCHS)
 

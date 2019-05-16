@@ -104,9 +104,12 @@ def classifier_loss(preds, target, is_targeted=False):
 def perturb_loss(perturbation, thresh=0.3):
     zeros = tf.zeros((tf.shape(perturbation)[0]))
     # norm-2
+    #return tf.reduce_mean(
+    #    tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
+    # norm-inf
     return tf.reduce_mean(
-        tf.maximum(zeros, tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), axis=1) - thresh))
-
+        tf.maximum(zeros,
+                   tf.norm(tf.reshape(perturbation, (tf.shape(perturbation)[0], -1)), ord=np.inf, axis=1) - thresh))
 
 def total_loss(f_loss, gan_loss, perturb_loss, alpha=1.0, beta=5.0):
     """
@@ -139,8 +142,9 @@ def train_step(images, labels, alpha, beta):
     gradients_of_generator = gen_tape.gradient(all_loss, generator.trainable_variables)
     gradients_of_discriminator = disc_tape.gradient(disc_loss, discriminator.trainable_variables)
 
-    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, discriminator.trainable_variables))
+    generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
+
 
     return all_loss, disc_loss
 
@@ -177,13 +181,14 @@ def train(dataset, labels, epochs):
             checkpoint.save(file_prefix=checkpoint_prefix)
             generator.save("generator_cgan_a1_b2.h5")
             discriminator.save("discriminator_cgan_a1_b2.h5")
+            df = pandas.DataFrame(record_loss, columns=["epoch", "gen_loss", "disc_loss"])
+            if not os.path.exists("log"):
+                os.makedirs("log")
+            df.to_csv("log/Cadvgan_loss.csv",index=False)
 
         print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
 
-    df = pandas.DataFrame(record_loss,index=False,columns=["epoch","gen_loss","disc_loss"])
-    if not os.path.exists("log"):
-        os.makedirs("log")
-    df.to_csv("log/Cadvgan_loss.csv")
+
     display.clear_output(wait=True)
     # Generate after the final epoch
 
@@ -237,5 +242,5 @@ if __name__ == '__main__':
                                      generator=generator,
                                      discriminator=discriminator)
 
-    EPOCHS = 1500
+    EPOCHS = 1000
     train(train_images_dataset,train_labels_dataset,EPOCHS)
