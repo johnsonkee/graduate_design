@@ -141,6 +141,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     loss = CrossEntropy(wrap, smoothing=label_smoothing)
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
+    saver = tf.train.Saver(max_to_keep=1)
+    saver.save(sess, 'train_dir/mnist.ckpt', global_step=NB_EPOCHS)
+
 
   # Calculate training error
   if testing:
