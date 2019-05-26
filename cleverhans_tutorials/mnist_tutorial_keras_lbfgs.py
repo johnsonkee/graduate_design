@@ -160,7 +160,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   lbfgs = LBFGS(wrap, sess=sess)
 
   # targeted attack, targeted class is 1
-  y_target = np.ones(10000)
+  y_target = np.ones(128)
   y_target = keras.utils.to_categorical(y_target,num_classes=10)
   y_target = tf.Variable(y_target)
   sess.run(tf.global_variables_initializer())
