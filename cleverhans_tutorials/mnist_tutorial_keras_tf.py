@@ -78,8 +78,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           "'th', temporarily setting to 'tf'")
 
   # Create TF session and set as Keras backend session
+  os.environ["CUDA_VISIBLE_DEVICES"] = '0'  # only use No.0 GPU
   config = tf.ConfigProto()
   config.allow_soft_placement=True
+  config.gpu_options.allow_growth = True
   sess = tf.Session(config=config)
   keras.backend.set_session(sess)
 
