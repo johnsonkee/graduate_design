@@ -15,6 +15,7 @@ import os
 import gc
 
 import tensorflow as tf
+import time
 from tensorflow.python.platform import flags
 import numpy as np
 import keras
@@ -167,8 +168,11 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Evaluate the accuracy of the MNIST model on adversarial examples
   eval_par = {'batch_size': batch_size}
+  start_time = time.time()
   acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
   print('Test accuracy on adversarial examples: %0.4f\n' % acc)
+  end_time = time.time()
+  print("FGSM attack time is {}".format(end_time-start_time))
   report.clean_train_adv_eval = acc
 
   # Calculating train error
