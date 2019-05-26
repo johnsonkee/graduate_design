@@ -21,7 +21,7 @@ import keras
 import time
 from keras import backend
 
-from cleverhans.attacks import MomentumIterativeMethod
+from cleverhans.attacks import LBFGS
 from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
@@ -157,13 +157,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     report.train_clean_train_clean_eval = acc
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
-  mifgsm = MomentumIterativeMethod(wrap, sess=sess)
-  mifgsm_params = {'eps': 0.3,
-                'eps_iter':0.06,
-                'nb_iter':10,
-                 'clip_min': 0.,
-                 'clip_max': 1.}
-  adv_x = mifgsm.generate(x, **mifgsm_params)
+  lbfgs = LBFGS(wrap, sess=sess)
+
+  adv_x = lbfgs.generate(x)
   # Consider the attack to be constant
   adv_x = tf.stop_gradient(adv_x)
   preds_adv = model(adv_x)
@@ -174,7 +170,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
   print('Test accuracy on adversarial examples: %0.4f\n' % acc)
   end_time = time.time()
-  print("mifgsm attack time is {}".format(end_time - start_time))
+  print("L-BFGS attack time is {}".format(end_time - start_time))
   report.clean_train_adv_eval = acc
 
   # Calculating train error
