@@ -168,6 +168,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   adv_x = tf.stop_gradient(adv_x)
   preds_adv = model(adv_x)
 
+  adv_image_mifgsm = sess.run(adv_x,feed_dict={x:x_test})
+  np.save("adv_mifgsm.npy",adv_image_mifgsm)
+  preds_adv = model(adv_x)
+
   # Evaluate the accuracy of the MNIST model on adversarial examples
   eval_par = {'batch_size': batch_size}
   start_time = time.time()
