@@ -131,6 +131,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   wrap = KerasModelWrapper(model)
 
   if load_model and ckpt_path:
+    backend.clear_session()
     saver = tf.train.Saver()
     print(ckpt_path)
     saver.restore(sess, ckpt_path)
