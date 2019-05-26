@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
+import gc
 
 import tensorflow as tf
 from tensorflow.python.platform import flags
@@ -131,7 +132,6 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   wrap = KerasModelWrapper(model)
 
   if load_model and ckpt_path:
-    backend.clear_session()
     saver = tf.train.Saver()
     print(ckpt_path)
     saver.restore(sess, ckpt_path)
@@ -175,6 +175,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     acc = model_eval(sess, x, y, preds_adv, x_train,
                      y_train, args=eval_par)
     report.train_clean_train_adv_eval = acc
+
+  gc.collect()
 
   return report
 
