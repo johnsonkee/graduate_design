@@ -143,6 +143,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
     saver.save(sess, 'train_dir/mnist.ckpt', global_step=NB_EPOCHS)
+    print("model has been saved")
 
 
   # Calculate training error
