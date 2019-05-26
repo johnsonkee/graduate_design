@@ -33,7 +33,7 @@ FLAGS = flags.FLAGS
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir'
+TRAIN_DIR = 'train_dir/mnist'
 FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
 
@@ -142,7 +142,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, 'train_dir/mnist.ckpt', global_step=NB_EPOCHS)
+    saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
     print("model has been saved")
 
 
