@@ -162,6 +162,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # targeted attack, targeted class is 1
   y_target = np.ones(1000)
   y_target = keras.utils.to_categorical(y_target,num_classes=10)
+  y_target = tf.Variable(y_target)
   lbfgs_params = {'y_target':y_target}
   adv_x = lbfgs.generate(x,**lbfgs_params)
   # Consider the attack to be constant
