@@ -77,7 +77,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           "'th', temporarily setting to 'tf'")
 
   # Create TF session and set as Keras backend session
-  sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+  config = tf.ConfigProto()
+  config.allow_soft_placement=True
+  sess = tf.Session(config=config)
   keras.backend.set_session(sess)
 
   # Get MNIST test data
@@ -168,49 +170,6 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     acc = model_eval(sess, x, y, preds_adv, x_train,
                      y_train, args=eval_par)
     report.train_clean_train_adv_eval = acc
-
-  print("Repeating the process, using adversarial training")
-  # Redefine TF model graph
-  model_2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
-                      channels=nchannels, nb_filters=64,
-                      nb_classes=nb_classes)
-  wrap_2 = KerasModelWrapper(model_2)
-  preds_2 = model_2(x)
-  fgsm2 = FastGradientMethod(wrap_2, sess=sess)
-
-  def attack(x):
-    return fgsm2.generate(x, **fgsm_params)
-
-  preds_2_adv = model_2(attack(x))
-  loss_2 = CrossEntropy(wrap_2, smoothing=label_smoothing, attack=attack)
-
-  def evaluate_2():
-    # Accuracy of adversarially trained model on legitimate test inputs
-    eval_params = {'batch_size': batch_size}
-    accuracy = model_eval(sess, x, y, preds_2, x_test, y_test,
-                          args=eval_params)
-    print('Test accuracy on legitimate examples: %0.4f' % accuracy)
-    report.adv_train_clean_eval = accuracy
-
-    # Accuracy of the adversarially trained model on adversarial examples
-    accuracy = model_eval(sess, x, y, preds_2_adv, x_test,
-                          y_test, args=eval_params)
-    print('Test accuracy on adversarial examples: %0.4f' % accuracy)
-    report.adv_train_adv_eval = accuracy
-
-  # Perform and evaluate adversarial training
-  train(sess, loss_2, x_train, y_train, evaluate=evaluate_2,
-        args=train_params, rng=rng)
-
-  # Calculate training errors
-  if testing:
-    eval_params = {'batch_size': batch_size}
-    accuracy = model_eval(sess, x, y, preds_2, x_train, y_train,
-                          args=eval_params)
-    report.train_adv_train_clean_eval = accuracy
-    accuracy = model_eval(sess, x, y, preds_2_adv, x_train,
-                          y_train, args=eval_params)
-    report.train_adv_train_adv_eval = accuracy
 
   return report
 
