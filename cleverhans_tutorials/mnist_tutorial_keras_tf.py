@@ -163,6 +163,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
+  print(fgsm_params)
   adv_x = fgsm.generate(x, **fgsm_params)
   # Consider the attack to be constant
   adv_x = tf.stop_gradient(adv_x)
