@@ -159,7 +159,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   bim = BasicIterativeMethod(wrap, sess=sess)
-  bim_params = {'eps': 0.0,
+  bim_params = {'eps': 0.06,
                 'eps_iter':0.06,
                 'nb_iter':10,
                  'clip_min': 0.,
