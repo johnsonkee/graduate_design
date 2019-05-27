@@ -161,7 +161,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     report.train_clean_train_clean_eval = acc
 
   # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
-  fgsm = FastGradientMethod(wrap, sess=sess)
+  fgsm = FastGradientMethod(model, sess=sess)
   fgsm_params = {'eps': 0.2,
                  'clip_min': 0.,
                  'clip_max': 1.}
