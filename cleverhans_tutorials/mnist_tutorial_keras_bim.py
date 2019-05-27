@@ -159,15 +159,15 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   bim = BasicIterativeMethod(wrap, sess=sess)
-  bim_params = {'eps': 0.06,
+  bim_params = {'eps': 0.2,
                 'eps_iter':0.06,
                 'nb_iter':10,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
   save_acc = []
-  for i in range(20):
-
+  for i in range(1):
+      print(bim_params)
       adv_x = bim.generate(x, **bim_params)
       # Consider the attack to be constant
       adv_x = tf.stop_gradient(adv_x)
@@ -185,11 +185,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       print("bim attack time is {}\n".format(end_time - start_time))
       report.clean_train_adv_eval = acc
 
-      bim_params['eps'] += 0.03
 
-  save_acc = np.array(save_acc)
-  record = pd.DataFrame(save_acc,columns=["eps","acc"])
-  record.to_csv("result/bim_eps_change.csv",index=False)
+  # save_acc = np.array(save_acc)
+  #record = pd.DataFrame(save_acc,columns=["eps","acc"])
+  # record.to_csv("result/bim_eps_change.csv",index=False)
 
   # Calculating train error
   if testing:

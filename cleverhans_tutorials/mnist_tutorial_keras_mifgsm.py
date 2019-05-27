@@ -159,14 +159,16 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   mifgsm = MomentumIterativeMethod(wrap, sess=sess)
-  mifgsm_params = {'eps': 0.06,
+  mifgsm_params = {'eps': 0.2,
                 'eps_iter':0.06,
                 'nb_iter':10,
+                'decay_factor':0.0,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
   save_acc = []
   for i in range(20):
+      print(mifgsm_params)
       adv_x = mifgsm.generate(x, **mifgsm_params)
       # Consider the attack to be constant
       adv_x = tf.stop_gradient(adv_x)
@@ -177,18 +179,18 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       start_time = time.time()
       acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
 
-      save_acc.append([mifgsm_params['eps'], acc])
+      save_acc.append([mifgsm_params['decay_factor'], acc])
 
-      print('Test accuracy on adversarial examples: %0.4f\n' % acc)
+      print('Test accuracy on adversarial examples: %0.4f' % acc)
       end_time = time.time()
-      print("mifgsm attack time is {}".format(end_time - start_time))
+      print("mifgsm attack time is {}\n".format(end_time - start_time))
       report.clean_train_adv_eval = acc
 
-      mifgsm_params['eps'] += 0.03
+      mifgsm_params['decay_factor'] += 0.1
 
   save_acc = np.array(save_acc)
-  record = pd.DataFrame(save_acc,columns=["eps","acc"])
-  record.to_csv("result/mifgsm_eps_change.csv",index=False)
+  record = pd.DataFrame(save_acc,columns=["decay","acc"])
+  record.to_csv("result/mifgsm_decay_change.csv",index=False)
 
   # Calculating train error
   if testing:
