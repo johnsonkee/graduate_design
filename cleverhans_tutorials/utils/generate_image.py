@@ -151,7 +151,6 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     print("model has been saved")
 
   # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
-  pdb.set_trace()
   if attack == 'fgsm':
     att_method = FastGradientMethod(wrap, sess=sess)
     att_method_params = {'eps': 0.2,
