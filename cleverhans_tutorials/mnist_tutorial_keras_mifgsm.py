@@ -80,7 +80,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           "'th', temporarily setting to 'tf'")
 
   # Create TF session and set as Keras backend session
-  os.environ["CUDA_VISIBLE_DEVICES"] = '0'  # only use No.0 GPU
+  os.environ["CUDA_VISIBLE_DEVICES"] = '1'  # only use No.0 GPU
   config = tf.ConfigProto()
   config.allow_soft_placement=True
   config.gpu_options.allow_growth = True
@@ -160,14 +160,14 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   mifgsm = MomentumIterativeMethod(wrap, sess=sess)
   mifgsm_params = {'eps': 0.2,
-                'eps_iter':0.06,
+                'eps_iter':0.01,
                 'nb_iter':10,
-                'decay_factor':0.0,
+                'decay_factor':0.4,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
   save_acc = []
-  for i in range(20):
+  for i in range(50):
       print(mifgsm_params)
       adv_x = mifgsm.generate(x, **mifgsm_params)
       # Consider the attack to be constant
@@ -186,11 +186,11 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       print("mifgsm attack time is {}\n".format(end_time - start_time))
       report.clean_train_adv_eval = acc
 
-      mifgsm_params['decay_factor'] += 0.1
+      mifgsm_params['eps_iter'] += 0.001
 
   save_acc = np.array(save_acc)
-  record = pd.DataFrame(save_acc,columns=["decay","acc"])
-  record.to_csv("result/mifgsm_decay_change.csv",index=False)
+  record = pd.DataFrame(save_acc,columns=["eps_iter","acc"])
+  record.to_csv("result/mnist_mifgsm_epsIter_change.csv",index=False)
 
   # Calculating train error
   if testing:
