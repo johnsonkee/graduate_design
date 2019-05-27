@@ -160,14 +160,14 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   mifgsm = MomentumIterativeMethod(wrap, sess=sess)
   mifgsm_params = {'eps': 0.2,
-                'eps_iter':0.01,
+                'eps_iter':0.06,
                 'nb_iter':10,
                 'decay_factor':0.4,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
   save_acc = []
-  for i in range(50):
+  for i in range(30):
       print(mifgsm_params)
       adv_x = mifgsm.generate(x, **mifgsm_params)
       # Consider the attack to be constant
@@ -179,7 +179,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       start_time = time.time()
       acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
 
-      save_acc.append([mifgsm_params['decay_factor'], acc])
+      save_acc.append([mifgsm_params['eps_iter'], acc])
 
       print('Test accuracy on adversarial examples: %0.4f' % acc)
       end_time = time.time()

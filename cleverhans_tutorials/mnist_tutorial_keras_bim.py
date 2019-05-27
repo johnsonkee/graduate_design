@@ -160,13 +160,13 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   bim = BasicIterativeMethod(wrap, sess=sess)
   bim_params = {'eps': 0.2,
-                'eps_iter':0.01,
+                'eps_iter':0.06,
                 'nb_iter':10,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
   save_acc = []
-  for i in range(50):
+  for i in range(30):
       print(bim_params)
       adv_x = bim.generate(x, **bim_params)
       # Consider the attack to be constant
