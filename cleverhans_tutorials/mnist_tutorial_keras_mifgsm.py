@@ -17,6 +17,7 @@ import gc
 import tensorflow as tf
 from tensorflow.python.platform import flags
 import numpy as np
+import pandas as pd
 import keras
 import time
 from keras import backend
@@ -158,28 +159,36 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   mifgsm = MomentumIterativeMethod(wrap, sess=sess)
-  mifgsm_params = {'eps': 0.3,
+  mifgsm_params = {'eps': 0.0,
                 'eps_iter':0.06,
                 'nb_iter':10,
                  'clip_min': 0.,
                  'clip_max': 1.}
-  adv_x = mifgsm.generate(x, **mifgsm_params)
-  # Consider the attack to be constant
-  adv_x = tf.stop_gradient(adv_x)
-  preds_adv = model(adv_x)
 
-  adv_image_mifgsm = sess.run(adv_x,feed_dict={x:x_test})
-  np.save("adv_mifgsm.npy",adv_image_mifgsm)
-  preds_adv = model(adv_x)
+  save_acc = []
+  for i in range(20):
+      adv_x = mifgsm.generate(x, **mifgsm_params)
+      # Consider the attack to be constant
+      adv_x = tf.stop_gradient(adv_x)
+      preds_adv = model(adv_x)
 
-  # Evaluate the accuracy of the MNIST model on adversarial examples
-  eval_par = {'batch_size': batch_size}
-  start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-  print('Test accuracy on adversarial examples: %0.4f\n' % acc)
-  end_time = time.time()
-  print("mifgsm attack time is {}".format(end_time - start_time))
-  report.clean_train_adv_eval = acc
+      # Evaluate the accuracy of the MNIST model on adversarial examples
+      eval_par = {'batch_size': batch_size}
+      start_time = time.time()
+      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+
+      save_acc.append([mifgsm_params['eps'], acc])
+
+      print('Test accuracy on adversarial examples: %0.4f\n' % acc)
+      end_time = time.time()
+      print("mifgsm attack time is {}".format(end_time - start_time))
+      report.clean_train_adv_eval = acc
+
+      mifgsm_params['eps'] += 0.03
+
+  save_acc = np.array(save_acc)
+  record = pd.DataFrame(save_acc,columns=["eps","acc"])
+  record.to_csv("result/mifgsm_eps_change.csv",index=False)
 
   # Calculating train error
   if testing:

@@ -20,6 +20,7 @@ from tensorflow.python.platform import flags
 import numpy as np
 import keras
 from keras import backend
+import pandas as pd
 
 from cleverhans.attacks import FastGradientMethod
 from cleverhans.dataset import MNIST
@@ -177,15 +178,16 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
       save_acc.append([fgsm_params['eps'],acc])
 
-      print('Test accuracy on adversarial examples: %0.4f\n' % acc)
+      print('Test accuracy on adversarial examples: %0.4f' % acc)
       end_time = time.time()
-      print("FGSM attack time is {}".format(end_time-start_time))
+      print("FGSM attack time is {}\n".format(end_time-start_time))
       report.clean_train_adv_eval = acc
 
       fgsm_params['eps'] += 0.03
 
   save_acc = np.array(save_acc)
-  np.save('result/fgsm_eps_change.npy',save_acc)
+  record = pd.DataFrame(save_acc,columns=["eps","acc"])
+  record.to_csv("result/fgsm_eps_change.csv",index=False)
 
   # Calculating train error
   if testing:
