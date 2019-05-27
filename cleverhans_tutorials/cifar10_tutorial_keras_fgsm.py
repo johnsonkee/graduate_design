@@ -30,6 +30,7 @@ from cleverhans.utils import AccuracyReport
 from cleverhans.utils_keras import cnn_model
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
+from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 
 FLAGS = flags.FLAGS
 
@@ -106,6 +107,8 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   model = cnn_model(img_rows=img_rows, img_cols=img_cols,
                     channels=nchannels, nb_filters=64,
                     nb_classes=nb_classes)
+  model = ModelAllConvolutional('model1', nb_classes, nb_filters=64,
+                                  input_shape=[32, 32, 3])
   preds = model(x)
   print("Defined TensorFlow model graph.")
 
@@ -133,7 +136,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   ckpt = tf.train.get_checkpoint_state(train_dir)
   print(train_dir, ckpt)
   ckpt_path = False if ckpt is None else ckpt.model_checkpoint_path
-  wrap = KerasModelWrapper(model)
+  # wrap = KerasModelWrapper(model)
 
   if load_model and ckpt_path:
     saver = tf.train.Saver()
@@ -143,7 +146,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     evaluate()
   else:
     print("Model was not loaded, training from scratch.")
-    loss = CrossEntropy(wrap, smoothing=label_smoothing)
+    loss = CrossEntropy(model, smoothing=label_smoothing)
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
