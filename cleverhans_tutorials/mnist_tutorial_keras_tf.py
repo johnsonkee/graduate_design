@@ -158,22 +158,34 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
   fgsm = FastGradientMethod(wrap, sess=sess)
-  fgsm_params = {'eps': 0.3,
+  fgsm_params = {'eps': 0.0,
                  'clip_min': 0.,
                  'clip_max': 1.}
-  adv_x = fgsm.generate(x, **fgsm_params)
-  # Consider the attack to be constant
-  adv_x = tf.stop_gradient(adv_x)
-  preds_adv = model(adv_x)
 
-  # Evaluate the accuracy of the MNIST model on adversarial examples
-  eval_par = {'batch_size': batch_size}
-  start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-  print('Test accuracy on adversarial examples: %0.4f\n' % acc)
-  end_time = time.time()
-  print("FGSM attack time is {}".format(end_time-start_time))
-  report.clean_train_adv_eval = acc
+  save_acc = []
+  for i in range(20):
+
+      adv_x = fgsm.generate(x, **fgsm_params)
+      # Consider the attack to be constant
+      adv_x = tf.stop_gradient(adv_x)
+      preds_adv = model(adv_x)
+
+      # Evaluate the accuracy of the MNIST model on adversarial examples
+      eval_par = {'batch_size': batch_size}
+      start_time = time.time()
+      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+
+      save_acc.append([fgsm_params['eps'],acc])
+
+      print('Test accuracy on adversarial examples: %0.4f\n' % acc)
+      end_time = time.time()
+      print("FGSM attack time is {}".format(end_time-start_time))
+      report.clean_train_adv_eval = acc
+
+      fgsm_params['eps'] += 0.03
+
+  save_acc = np.array(save_acc)
+  np.save('result/fgsm_eps_change.npy',save_acc)
 
   # Calculating train error
   if testing:
