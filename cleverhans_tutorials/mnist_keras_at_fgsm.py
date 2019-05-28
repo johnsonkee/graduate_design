@@ -200,6 +200,12 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       else:
           exit("the attack method must be fgsm,bim,mifgsm")
       # Evaluate the accuracy of the MNIST model on adversarial examples
+      print(att_method_params)
+      adv_x = att_method.generate(x, **att_method_params)
+      # Consider the attack to be constant
+      adv_x = tf.stop_gradient(adv_x)
+      preds_adv = model(adv_x)
+
       eval_par = {'batch_size': batch_size}
       start_time = time.time()
       acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
