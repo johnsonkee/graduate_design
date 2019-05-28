@@ -23,25 +23,26 @@ from keras import backend
 import pandas as pd
 
 from cleverhans.attacks import FastGradientMethod
-from cleverhans.dataset import MNIST
+from cleverhans.dataset import CIFAR10
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
 from cleverhans.utils_keras import cnn_model
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
+from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 
 FLAGS = flags.FLAGS
 
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir/mnist'
-FILENAME = 'mnist.ckpt'
+TRAIN_DIR = 'train_dir/cifar10'
+FILENAME = 'cifar10.ckpt'
 LOAD_MODEL = False
 
 
-def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
+def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
@@ -88,7 +89,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   keras.backend.set_session(sess)
 
   # Get MNIST test data
-  mnist = MNIST(train_start=train_start, train_end=train_end,
+  mnist = CIFAR10(train_start=train_start, train_end=train_end,
                 test_start=test_start, test_end=test_end)
   x_train, y_train = mnist.get_set('train')
   x_test, y_test = mnist.get_set('test')
@@ -106,6 +107,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   model = cnn_model(img_rows=img_rows, img_cols=img_cols,
                     channels=nchannels, nb_filters=64,
                     nb_classes=nb_classes)
+  model = ModelAllConvolutional('model1', nb_classes, nb_filters=64,
+                                  input_shape=[32, 32, 3])
   preds = model(x)
   print("Defined TensorFlow model graph.")
 
@@ -133,7 +136,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   ckpt = tf.train.get_checkpoint_state(train_dir)
   print(train_dir, ckpt)
   ckpt_path = False if ckpt is None else ckpt.model_checkpoint_path
-  wrap = KerasModelWrapper(model)
+  # wrap = KerasModelWrapper(model)
 
   if load_model and ckpt_path:
     saver = tf.train.Saver()
@@ -143,11 +146,11 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     evaluate()
   else:
     print("Model was not loaded, training from scratch.")
-    loss = CrossEntropy(wrap, smoothing=label_smoothing)
+    loss = CrossEntropy(model, smoothing=label_smoothing)
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
+    saver.save(sess, '{}/cifar10.ckpt'.format(train_dir), global_step=NB_EPOCHS)
     print("model has been saved")
 
 
@@ -158,7 +161,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     report.train_clean_train_clean_eval = acc
 
   # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
-  fgsm = FastGradientMethod(wrap, sess=sess)
+  fgsm = FastGradientMethod(model, sess=sess)
   fgsm_params = {'eps': 0.2,
                  'clip_min': 0.,
                  'clip_max': 1.}
@@ -178,34 +181,13 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   print("FGSM attack time is {}\n".format(end_time-start_time))
   report.clean_train_adv_eval = acc
 
-  # >>>>>   adversarial trainning
-  print("adversarial training")
-  fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train})
-  new_x_train = np.concatenate([x_train,fgsm_adversary])
-  new_y_train = np.concatenate([y_train,y_train])
 
-  model2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
-                    channels=nchannels, nb_filters=64,
-                    nb_classes=nb_classes)
-  wrap2 = KerasModelWrapper(model2)
-  preds2 = wrap2(x)
-  loss2 = CrossEntropy(wrap2, smoothing=label_smoothing)
-
-  def evaluate2():
-      # Evaluate the accuracy of the MNIST model on legitimate test examples
-      eval_params = {'batch_size': batch_size}
-      acc = model_eval(sess, x, y, preds2, x_test, y_test, args=eval_params)
-      report.clean_train_clean_eval = acc
-      #        assert X_test.shape[0] == test_end - test_start, X_test.shape
-      print('AT Test accuracy on legitimate examples: %0.4f' % acc)
-
-  train(sess, loss2, new_x_train, new_y_train, evaluate=evaluate2,
-        args=train_params, rng=rng)
-
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-  print('Test accuracy on adversarial examples: %0.4f' % acc)
-  # <<<<  adversarial training
-
+  # Calculating train error
+  if testing:
+    eval_par = {'batch_size': batch_size}
+    acc = model_eval(sess, x, y, preds_adv, x_train,
+                     y_train, args=eval_par)
+    report.train_clean_train_adv_eval = acc
 
   gc.collect()
 
@@ -216,7 +198,7 @@ def main(argv=None):
   from cleverhans_tutorials import check_installation
   check_installation(__file__)
 
-  mnist_tutorial(nb_epochs=FLAGS.nb_epochs,
+  cifar10_tutorial(nb_epochs=FLAGS.nb_epochs,
                  batch_size=FLAGS.batch_size,
                  learning_rate=FLAGS.learning_rate,
                  train_dir=FLAGS.train_dir,
