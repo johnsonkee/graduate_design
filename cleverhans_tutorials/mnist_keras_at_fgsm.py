@@ -36,8 +36,8 @@ FLAGS = flags.FLAGS
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir/mnist/adversarial'
-FILENAME = 'fgsm_mnist.ckpt'
+TRAIN_DIR = 'train_dir/mnist/adversarial/fgsm'
+FILENAME = 'fgsm.ckpt'
 LOAD_MODEL = False
 ADVERSARIAL_TRAINING = False
 ATTACKING = 'fgsm'
@@ -190,8 +190,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     train(sess, loss2, x_train, y_train, evaluate=evaluate2,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, '{}/{}'.format(train_dir,filename), global_step=NB_EPOCHS)
-    keras.models.save_model(model, '{}/fgsm_mnist.h5'.format(train_dir))
+    saver.save(sess, '{}/{}.ckpt'.format(train_dir,attacking), global_step=NB_EPOCHS)
+    keras.models.save_model(model, '{}/{}_mnist.h5'.format(train_dir,attacking))
     print("model has been saved")
 
 
