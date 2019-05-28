@@ -22,12 +22,12 @@ import keras
 from keras import backend
 import pandas as pd
 
-from cleverhans.attacks import FastGradientMethod,BasicIterativeMethod,MomentumIterativeMethod
+from cleverhans.attacks import FastGradientMethod
 from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
-from cleverhans.utils_keras import cnn_model
+from cleverhans.utils_keras import cnn_model,fc_modelB
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
 
