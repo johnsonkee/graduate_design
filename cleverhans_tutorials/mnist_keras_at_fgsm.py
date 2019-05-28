@@ -36,7 +36,7 @@ FLAGS = flags.FLAGS
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir/mnist/adversarial/fgsm'
+TRAIN_DIR = 'train_dir/mnist/adversarial/'
 FILENAME = 'fgsm.ckpt'
 LOAD_MODEL = False
 ADVERSARIAL_TRAINING = False
@@ -170,6 +170,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   }
 
   rng = np.random.RandomState([2017, 8, 30])
+  train_dir = train_dir + attacking
   if not os.path.exists(train_dir):
     os.mkdir(train_dir)
 
