@@ -182,17 +182,14 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # >>>>>   adversarial trainning
   if adversarial_training:
       print("adversarial training")
-      fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train[0:10000]})
-      new_x_train = np.concatenate([x_train,fgsm_adversary])
-      del fgsm_adversary
-      new_y_train = np.concatenate([y_train,y_train[0:10000]])
-
       model2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
                         channels=nchannels, nb_filters=64,
                         nb_classes=nb_classes)
       wrap2 = KerasModelWrapper(model2)
       preds2 = wrap2(x)
-      loss2 = CrossEntropy(wrap2, smoothing=label_smoothing)
+      def attack(x):
+          return fgsm.generate(x, **fgsm_params)
+      loss2 = CrossEntropy(wrap2, smoothing=label_smoothing,attack=attack)
 
       def evaluate2():
           # Evaluate the accuracy of the MNIST model on legitimate test examples
@@ -202,7 +199,12 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           #        assert X_test.shape[0] == test_end - test_start, X_test.shape
           print('AT Test accuracy on legitimate examples: %0.4f' % acc)
 
-      train(sess, loss2, new_x_train, new_y_train, evaluate=evaluate2,
+          # Accuracy of the adversarially trained model on adversarial examples
+          accuracy = model_eval(sess, x, y, preds2, x_test,y_test, args=eval_params)
+          print('AT Test accuracy on adversarial examples: %0.4f' % accuracy)
+          report.adv_train_adv_eval = accuracy
+
+      train(sess, loss2, x_train, y_train, evaluate=evaluate2,
             args=train_params, rng=rng)
 
       acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
