@@ -40,13 +40,15 @@ TRAIN_DIR = 'train_dir/mnist/adversarial'
 FILENAME = 'fgsm_mnist.ckpt'
 LOAD_MODEL = False
 ADVERSARIAL_TRAINING = False
+ATTACKING = 'fgsm'
 
 def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
                    testing=False, label_smoothing=0.1,
-                   adversarial_training = ADVERSARIAL_TRAINING):
+                   adversarial_training = ADVERSARIAL_TRAINING,
+                   attacking = ATTACKING):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -167,17 +169,44 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           args=train_params, rng=rng)
     saver = tf.train.Saver(max_to_keep=1)
     saver.save(sess, '{}/{}'.format(train_dir,filename), global_step=NB_EPOCHS)
+    keras.models.save_model(model, '{}/fgsm_mnist.h5'.format(train_dir))
     print("model has been saved")
 
 
-  # Evaluate the accuracy of the MNIST model on adversarial examples
-  eval_par = {'batch_size': batch_size}
-  start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-  print('Test accuracy on adversarial examples: %0.4f' % acc)
-  end_time = time.time()
-  print("FGSM attack time is {}\n".format(end_time-start_time))
-  report.clean_train_adv_eval = acc
+  # >>> other method >>>
+  method = ['fgsm','bim','mifgsm']
+  for i in range(3):
+      attacking = method[i]
+      if attacking == 'fgsm':
+        att_method = FastGradientMethod(wrap, sess=sess)
+        att_method_params = {'eps': 0.2,
+                     'clip_min': 0.,
+                     'clip_max': 1.}
+      elif attacking == 'bim':
+        att_method = BasicIterativeMethod(wrap,sess=sess)
+        att_method_params = {'eps': 0.2,
+                    'eps_iter':0.06,
+                    'nb_iter':10,
+                     'clip_min': 0.,
+                     'clip_max': 1.}
+      elif attacking == 'mifgsm':
+        att_method = MomentumIterativeMethod(wrap,sess=sess)
+        att_method_params =  {'eps': 0.2,
+                    'eps_iter':0.08,
+                    'nb_iter':10,
+                    'decay_factor':0.4,
+                     'clip_min': 0.,
+                     'clip_max': 1.}
+      else:
+          exit("the attack method must be fgsm,bim,mifgsm")
+      # Evaluate the accuracy of the MNIST model on adversarial examples
+      eval_par = {'batch_size': batch_size}
+      start_time = time.time()
+      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+      print('Test accuracy on adversarial examples: %0.4f' % acc)
+      end_time = time.time()
+      print("{} attack time is {}\n".format(attacking,end_time-start_time))
+      report.clean_train_adv_eval = acc
 
   gc.collect()
 
@@ -192,7 +221,8 @@ def main(argv=None):
                  train_dir=FLAGS.train_dir,
                  filename=FLAGS.filename,
                  load_model=FLAGS.load_model,
-                 adversarial_training=FLAGS.at)
+                 adversarial_training=FLAGS.at,
+                 attacking=FLAGS.attacking)
 
 
 if __name__ == '__main__':
@@ -207,4 +237,6 @@ if __name__ == '__main__':
   flags.DEFINE_boolean('load_model', LOAD_MODEL,
                        'Load saved model or train.')
   flags.DEFINE_boolean('at',ADVERSARIAL_TRAINING,'use at or not')
+  flags.DEFINE_string('attacking',ATTACKING,
+                      'the method to attack atm in whitebox:fgsm,bim,mifgsm')
   tf.app.run()
