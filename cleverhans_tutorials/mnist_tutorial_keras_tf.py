@@ -211,10 +211,15 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       saver = tf.train.Saver(max_to_keep=1)
       saver.save(sess, '{}/adversarial/fgsm_mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
       print("at model has been saved")
-      keras.models.save_model(model2,'{}/adversarial/fgsm_mnist.h5'.format(train_dir))
 
+      # using fgsm to attack ATmodel:model2 (white box)
+      adv_x = fgsm.generate(x, **fgsm_params)
+      # Consider the attack to be constant
+      adv_x = tf.stop_gradient(adv_x)
+      preds_adv = model2(adv_x)
       acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-      print('Test accuracy on adversarial examples(black box): %0.4f' % acc)
+      print('Test accuracy on adversarial examples: %0.4f' % acc)
+
       # <<<<  adversarial training
 
   gc.collect()
