@@ -182,9 +182,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # >>>>>   adversarial trainning
   if adversarial_training:
       print("adversarial training")
-      fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train})
+      fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train[0:10000]})
       new_x_train = np.concatenate([x_train,fgsm_adversary])
-      new_y_train = np.concatenate([y_train,y_train])
+      del fgsm_adversary
+      new_y_train = np.concatenate([y_train,y_train[0:10000]])
 
       model2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
                         channels=nchannels, nb_filters=64,
