@@ -191,6 +191,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           return fgsm.generate(x, **fgsm_params)
       loss2 = CrossEntropy(wrap2, smoothing=label_smoothing,attack=attack)
 
+      preds2_adv = wrap2(attack(x))
+
       def evaluate2():
           # Evaluate the accuracy of the MNIST model on legitimate test examples
           eval_params = {'batch_size': batch_size}
@@ -200,7 +202,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           print('AT Test accuracy on legitimate examples: %0.4f' % acc)
 
           # Accuracy of the adversarially trained model on adversarial examples
-          accuracy = model_eval(sess, x, y, preds2, x_test,y_test, args=eval_params)
+          accuracy = model_eval(sess, x, y, preds2_adv, x_test,y_test, args=eval_params)
           print('AT Test accuracy on adversarial examples: %0.4f' % accuracy)
           report.adv_train_adv_eval = accuracy
 
