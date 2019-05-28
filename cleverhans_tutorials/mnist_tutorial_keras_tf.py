@@ -39,13 +39,14 @@ LEARNING_RATE = .001
 TRAIN_DIR = 'train_dir/mnist'
 FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
-
+ADVERSARIAL_TRAINING = False
 
 def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
-                   testing=False, label_smoothing=0.1):
+                   testing=False, label_smoothing=0.1,
+                   adversarial_training = ADVERSARIAL_TRAINING):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -179,32 +180,33 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   report.clean_train_adv_eval = acc
 
   # >>>>>   adversarial trainning
-  print("adversarial training")
-  fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train})
-  new_x_train = np.concatenate([x_train,fgsm_adversary])
-  new_y_train = np.concatenate([y_train,y_train])
+  if adversarial_training:
+      print("adversarial training")
+      fgsm_adversary = sess.run(fgsm.generate(x,**fgsm_params),feed_dict={x:x_train})
+      new_x_train = np.concatenate([x_train,fgsm_adversary])
+      new_y_train = np.concatenate([y_train,y_train])
 
-  model2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
-                    channels=nchannels, nb_filters=64,
-                    nb_classes=nb_classes)
-  wrap2 = KerasModelWrapper(model2)
-  preds2 = wrap2(x)
-  loss2 = CrossEntropy(wrap2, smoothing=label_smoothing)
+      model2 = cnn_model(img_rows=img_rows, img_cols=img_cols,
+                        channels=nchannels, nb_filters=64,
+                        nb_classes=nb_classes)
+      wrap2 = KerasModelWrapper(model2)
+      preds2 = wrap2(x)
+      loss2 = CrossEntropy(wrap2, smoothing=label_smoothing)
 
-  def evaluate2():
-      # Evaluate the accuracy of the MNIST model on legitimate test examples
-      eval_params = {'batch_size': batch_size}
-      acc = model_eval(sess, x, y, preds2, x_test, y_test, args=eval_params)
-      report.clean_train_clean_eval = acc
-      #        assert X_test.shape[0] == test_end - test_start, X_test.shape
-      print('AT Test accuracy on legitimate examples: %0.4f' % acc)
+      def evaluate2():
+          # Evaluate the accuracy of the MNIST model on legitimate test examples
+          eval_params = {'batch_size': batch_size}
+          acc = model_eval(sess, x, y, preds2, x_test, y_test, args=eval_params)
+          report.clean_train_clean_eval = acc
+          #        assert X_test.shape[0] == test_end - test_start, X_test.shape
+          print('AT Test accuracy on legitimate examples: %0.4f' % acc)
 
-  train(sess, loss2, new_x_train, new_y_train, evaluate=evaluate2,
-        args=train_params, rng=rng)
+      train(sess, loss2, new_x_train, new_y_train, evaluate=evaluate2,
+            args=train_params, rng=rng)
 
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-  print('Test accuracy on adversarial examples: %0.4f' % acc)
-  # <<<<  adversarial training
+      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+      print('Test accuracy on adversarial examples: %0.4f' % acc)
+      # <<<<  adversarial training
 
 
   gc.collect()
@@ -221,7 +223,8 @@ def main(argv=None):
                  learning_rate=FLAGS.learning_rate,
                  train_dir=FLAGS.train_dir,
                  filename=FLAGS.filename,
-                 load_model=FLAGS.load_model)
+                 load_model=FLAGS.load_model,
+                 adversarial_training=FLAGS.at)
 
 
 if __name__ == '__main__':
@@ -235,4 +238,5 @@ if __name__ == '__main__':
   flags.DEFINE_string('filename', FILENAME, 'Checkpoint filename.')
   flags.DEFINE_boolean('load_model', LOAD_MODEL,
                        'Load saved model or train.')
+  flags.DEFINE_boolean('at',ADVERSARIAL_TRAINING,'use at or not')
   tf.app.run()
