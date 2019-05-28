@@ -22,7 +22,7 @@ import keras
 from keras import backend
 import pandas as pd
 
-from cleverhans.attacks import FastGradientMethod
+from cleverhans.attacks import FastGradientMethod,BasicIterativeMethod,MomentumIterativeMethod
 from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
@@ -213,7 +213,30 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       print("at model has been saved")
 
       # using fgsm to attack ATmodel:model2 (white box)
-      adv_x = fgsm.generate(x, **fgsm_params)
+      attack = 'bim'
+      if attack == 'fgsm':
+          att_method = FastGradientMethod(wrap, sess=sess)
+          att_method_params = {'eps': 0.2,
+                               'clip_min': 0.,
+                               'clip_max': 1.}
+      elif attack == 'bim':
+          att_method = BasicIterativeMethod(wrap, sess=sess)
+          att_method_params = {'eps': 0.2,
+                               'eps_iter': 0.06,
+                               'nb_iter': 10,
+                               'clip_min': 0.,
+                               'clip_max': 1.}
+      elif attack == 'mifgsm':
+          att_method = MomentumIterativeMethod(wrap, sess=sess)
+          att_method_params = {'eps': 0.2,
+                               'eps_iter': 0.08,
+                               'nb_iter': 10,
+                               'decay_factor': 0.4,
+                               'clip_min': 0.,
+                               'clip_max': 1.}
+      else:
+          exit("the attack method must be fgsm,bim,mifgsm")
+      adv_x = att_method.generate(x, **att_method_params)
       # Consider the attack to be constant
       adv_x = tf.stop_gradient(adv_x)
       preds_adv = model2(adv_x)
@@ -223,8 +246,6 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
       # <<<<  adversarial training
 
   gc.collect()
-
-  return report
 
 
 def main(argv=None):
