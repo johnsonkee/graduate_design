@@ -183,7 +183,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   rng = np.random.RandomState([2017, 8, 30])
   train_dir = train_dir + '/' + model_type + '/' + origin_method
   if not os.path.exists(train_dir):
-    os.mkdir(train_dir)
+    os.makedirs(train_dir)
 
   ckpt = tf.train.get_checkpoint_state(train_dir)
   print(train_dir, ckpt)
