@@ -27,8 +27,7 @@ from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
-from cleverhans.utils_keras import cnn_model
-from mymodel import  fc_modelB,fc_modelC
+from mymodel import  modelB,modelC,modelA
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
 
@@ -41,13 +40,16 @@ TRAIN_DIR = 'train_dir/mnist'
 FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
 SAVE_MODEL = False
+ATTACK_METHOD = 'fgsm'
+MODEL_TYPE = 'a'
 
 def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
                    testing=False, label_smoothing=0.1,
-                   save_model=SAVE_MODEL):
+                   save_model=SAVE_MODEL,attack_method=ATTACK_METHOD,
+                   model_type=MODEL_TYPE):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -105,9 +107,16 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
   # Define TF model graph
-  model = fc_modelC(img_rows=img_rows, img_cols=img_cols,
-                    channels=nchannels, nb_filters=64,
-                    nb_classes=nb_classes)
+  the_model = modelA
+  if model_type == 'b':
+      the_model = modelB
+  elif model_type == 'c':
+      the_model = modelC
+  else:
+      exit('the model type must be a or b or c.')
+  model = the_model(img_rows=img_rows, img_cols=img_cols,
+                 channels=nchannels, nb_filters=64,
+                 nb_classes=nb_classes)
   preds = model(x)
   print("Defined TensorFlow model graph.")
 
@@ -219,4 +228,8 @@ if __name__ == '__main__':
                        'Load saved model or train.')
   flags.DEFINE_boolean('save_model',SAVE_MODEL,
                        'save the model or not')
+  flags.DEFINE_string('attack_method',ATTACK_METHOD,
+                      'choose the attack method: fgsm, bim, mifgsm')
+  flags.DEFINE_string('model_type',MODEL_TYPE,
+                      'choose which model:a,b,c')
   tf.app.run()
