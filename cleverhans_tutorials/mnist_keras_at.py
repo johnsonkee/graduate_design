@@ -201,10 +201,11 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     loss2 = CrossEntropy(wrap, smoothing=label_smoothing,attack=attack)
     train(sess, loss2, x_train, y_train, evaluate=evaluate2,
           args=train_params, rng=rng)
-    saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, '{}/{}.ckpt'.format(train_dir,attacking), global_step=NB_EPOCHS)
-    keras.models.save_model(model, '{}/{}_mnist.h5'.format(train_dir,attacking))
-    print("model has been saved")
+    if save_model:
+        saver = tf.train.Saver(max_to_keep=1)
+        saver.save(sess, '{}/{}.ckpt'.format(train_dir,attacking), global_step=NB_EPOCHS)
+        keras.models.save_model(model, '{}/{}_mnist.h5'.format(train_dir,attacking))
+        print("model has been saved")
 
 
   # >>> other method >>>
