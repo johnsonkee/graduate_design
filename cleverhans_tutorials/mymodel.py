@@ -27,7 +27,7 @@ def conv_2d(filters, kernel_shape, strides, padding, input_shape=None):
                       layer of the model
   :return: the Keras layer
   """
-def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
+def modelB(logits=False, input_ph=None, img_rows=28, img_cols=28,
               channels=1, nb_filters=64, nb_classes=10):
   """
   Defines a CNN model using Keras sequential model
@@ -68,7 +68,7 @@ def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
 
   return model
 
-def modelB(logits=False, input_ph=None, img_rows=28, img_cols=28,
+def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
               channels=1, nb_filters=64, nb_classes=10):
   """
   Defines a CNN model using Keras sequential model

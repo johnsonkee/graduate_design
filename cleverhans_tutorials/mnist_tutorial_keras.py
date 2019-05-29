@@ -28,8 +28,8 @@ from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
-from cleverhans.utils_keras import cnn_model
-from mymodel import  modelB,modelC,modelA
+from cleverhans.utils_keras import cnn_model as modelB
+from mymodel import  modelC,modelA
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
 
@@ -109,9 +109,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
   # Define TF model graph
-  the_model = cnn_model
+  the_model = modelA
   if model_type == 'a':
-      the_model = cnn_model
+      the_model = modelA
   elif model_type == 'b':
       the_model = modelB
   elif model_type == 'c':
@@ -218,6 +218,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   #save_acc = np.array(save_acc)
   #record = pd.DataFrame(save_acc,columns=["decay","acc"])
   #record.to_csv("result/mnist_fc_decay__change.csv",index=False)
+
+  tmp_train = sess.run(adv_x,feed_dict={x:x_train})
+  np.save("mifgsm_b_train_adv.npy",tmp_train)
 
   gc.collect()
 
