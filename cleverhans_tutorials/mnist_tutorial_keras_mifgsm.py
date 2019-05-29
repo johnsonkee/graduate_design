@@ -22,7 +22,8 @@ import keras
 import time
 from keras import backend
 
-from cleverhans.attacks import MomentumIterativeMethod
+from cleverhans.attacks import MomentumIterativeMethod,\
+    FastGradientMethod,BasicIterativeMethod
 from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
@@ -131,6 +132,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     print('Test accuracy on legitimate examples: %0.4f' % acc)
 
   # Train an MNIST model
+  train_dir =train_dir + '/' + model_type
   train_params = {
       'nb_epochs': nb_epochs,
       'batch_size': batch_size,
@@ -172,16 +174,32 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     report.train_clean_train_clean_eval = acc
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
-  mifgsm = MomentumIterativeMethod(wrap, sess=sess)
-  mifgsm_params = {'eps': 0.2,
+  if attack_method == 'fgsm':
+    att_method = FastGradientMethod(wrap, sess=sess)
+    att_method_params = {'eps': 0.2,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  elif attack_method == 'bim':
+    att_method = BasicIterativeMethod(wrap,sess=sess)
+    att_method_params = {'eps': 0.2,
+                'eps_iter':0.06,
+                'nb_iter':10,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  elif attack_method == 'mifgsm':
+    att_method = MomentumIterativeMethod(wrap,sess=sess)
+    att_method_params =  {'eps': 0.2,
                 'eps_iter':0.08,
                 'nb_iter':10,
                 'decay_factor':0.4,
                  'clip_min': 0.,
                  'clip_max': 1.}
+  else:
+      exit("the attack method must be fgsm,bim,mifgsm")
 
-  print(mifgsm_params)
-  adv_x = mifgsm.generate(x, **mifgsm_params)
+
+  print(att_method_params)
+  adv_x = att_method.generate(x, **att_method_params)
   # Consider the attack to be constant
   adv_x = tf.stop_gradient(adv_x)
   preds_adv = model(adv_x)
