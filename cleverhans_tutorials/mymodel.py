@@ -45,7 +45,6 @@ def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
   :return:
   """
   model = Sequential()
-
   # Define the layers successively (convolution layers are version dependent)
   if keras.backend.image_dim_ordering() == 'th':
     input_shape = (channels, img_rows, img_cols)

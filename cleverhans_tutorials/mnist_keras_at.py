@@ -28,6 +28,7 @@ from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
 from cleverhans.utils_keras import cnn_model
+from mymodel import  modelB,modelC,modelA
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
 
@@ -36,11 +37,14 @@ FLAGS = flags.FLAGS
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir/mnist/adversarial/'
-FILENAME = 'fgsm.ckpt'
+TRAIN_DIR = 'train_dir/mnist/adversarial'
+FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
 ADVERSARIAL_TRAINING = False
 ATTACKING = 'fgsm'
+ORIGIN_METHOD = 'fgsm'
+SAVE_MODEL = False
+MODEL_TYPE = 'a'
 
 def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
@@ -48,7 +52,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    filename=FILENAME, load_model=LOAD_MODEL,
                    testing=False, label_smoothing=0.1,
                    adversarial_training = ADVERSARIAL_TRAINING,
-                   attacking = ATTACKING):
+                   attacking = ATTACKING,origin_method=ORIGIN_METHOD,
+                   save_model=SAVE_MODEL,model_type=MODEL_TYPE):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -105,31 +110,37 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                                         nchannels))
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
-  # fgsm
-
 
   # Define TF model graph
-  print("Defined TensorFlow model graph.")
-  model = cnn_model(img_rows=img_rows, img_cols=img_cols,
-                    channels=nchannels, nb_filters=64,
-                    nb_classes=nb_classes)
+  the_model = cnn_model
+  if model_type == 'a':
+      the_model = cnn_model
+  elif model_type == 'b':
+      the_model = modelB
+  elif model_type == 'c':
+      the_model = modelC
+  else:
+      exit('the model type must be a or b or c.')
+  model = the_model(img_rows=img_rows, img_cols=img_cols,
+                 channels=nchannels, nb_filters=64,
+                 nb_classes=nb_classes)
   wrap = KerasModelWrapper(model)
   preds = model(x)
 
   # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
-  if attacking == 'fgsm':
+  if origin_method == 'fgsm':
       att_method = FastGradientMethod(wrap, sess=sess)
       att_method_params = {'eps': 0.2,
                            'clip_min': 0.,
                            'clip_max': 1.}
-  elif attacking == 'bim':
+  elif origin_method == 'bim':
       att_method = BasicIterativeMethod(wrap, sess=sess)
       att_method_params = {'eps': 0.2,
                            'eps_iter': 0.06,
                            'nb_iter': 10,
                            'clip_min': 0.,
                            'clip_max': 1.}
-  elif attacking == 'mifgsm':
+  elif origin_method == 'mifgsm':
       att_method = MomentumIterativeMethod(wrap, sess=sess)
       att_method_params = {'eps': 0.2,
                            'eps_iter': 0.08,
@@ -170,7 +181,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   }
 
   rng = np.random.RandomState([2017, 8, 30])
-  train_dir = train_dir + attacking
+  train_dir = train_dir + '/' + model_type + '/' + origin_method
   if not os.path.exists(train_dir):
     os.mkdir(train_dir)
 
@@ -197,45 +208,46 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
 
   # >>> other method >>>
-  method = ['fgsm','bim','mifgsm']
-  for i in range(3):
-      attacking = method[i]
-      if attacking == 'fgsm':
-        att_method = FastGradientMethod(wrap, sess=sess)
-        att_method_params = {'eps': 0.2,
-                     'clip_min': 0.,
-                     'clip_max': 1.}
-      elif attacking == 'bim':
-        att_method = BasicIterativeMethod(wrap,sess=sess)
-        att_method_params = {'eps': 0.2,
-                    'eps_iter':0.06,
-                    'nb_iter':10,
-                     'clip_min': 0.,
-                     'clip_max': 1.}
-      elif attacking == 'mifgsm':
-        att_method = MomentumIterativeMethod(wrap,sess=sess)
-        att_method_params =  {'eps': 0.2,
-                    'eps_iter':0.08,
-                    'nb_iter':10,
-                    'decay_factor':0.4,
-                     'clip_min': 0.,
-                     'clip_max': 1.}
-      else:
-          exit("the attack method must be fgsm,bim,mifgsm")
-      # Evaluate the accuracy of the MNIST model on adversarial examples
-      print(att_method_params)
-      adv_x = att_method.generate(x, **att_method_params)
-      # Consider the attack to be constant
-      adv_x = tf.stop_gradient(adv_x)
-      preds_adv = model(adv_x)
+  if adversarial_training:
+      method = ['fgsm','bim','mifgsm']
+      for i in range(3):
+          attacking = method[i]
+          if attacking == 'fgsm':
+            att_method = FastGradientMethod(wrap, sess=sess)
+            att_method_params = {'eps': 0.2,
+                         'clip_min': 0.,
+                         'clip_max': 1.}
+          elif attacking == 'bim':
+            att_method = BasicIterativeMethod(wrap,sess=sess)
+            att_method_params = {'eps': 0.2,
+                        'eps_iter':0.06,
+                        'nb_iter':10,
+                         'clip_min': 0.,
+                         'clip_max': 1.}
+          elif attacking == 'mifgsm':
+            att_method = MomentumIterativeMethod(wrap,sess=sess)
+            att_method_params =  {'eps': 0.2,
+                        'eps_iter':0.08,
+                        'nb_iter':10,
+                        'decay_factor':0.4,
+                         'clip_min': 0.,
+                         'clip_max': 1.}
+          else:
+              exit("the attack method must be fgsm,bim,mifgsm")
+          # Evaluate the accuracy of the MNIST model on adversarial examples
+          print(att_method_params)
+          adv_x = att_method.generate(x, **att_method_params)
+          # Consider the attack to be constant
+          adv_x = tf.stop_gradient(adv_x)
+          preds_adv = model(adv_x)
 
-      eval_par = {'batch_size': batch_size}
-      start_time = time.time()
-      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-      print('Test accuracy on adversarial examples: %0.4f' % acc)
-      end_time = time.time()
-      print("{} attack time is {}\n".format(attacking,end_time-start_time))
-      report.clean_train_adv_eval = acc
+          eval_par = {'batch_size': batch_size}
+          start_time = time.time()
+          acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+          print('Test accuracy on adversarial examples: %0.4f' % acc)
+          end_time = time.time()
+          print("{} attack time is {}\n".format(attacking,end_time-start_time))
+          report.clean_train_adv_eval = acc
 
   gc.collect()
 
@@ -251,7 +263,10 @@ def main(argv=None):
                  filename=FLAGS.filename,
                  load_model=FLAGS.load_model,
                  adversarial_training=FLAGS.at,
-                 attacking=FLAGS.attacking)
+                 attacking=FLAGS.attacking,
+                 origin_method=FLAGS.origin_method,
+                 save_model=FLAGS.save_model,
+                 model_type=FLAGS.model_type)
 
 
 if __name__ == '__main__':
@@ -268,4 +283,10 @@ if __name__ == '__main__':
   flags.DEFINE_boolean('at',ADVERSARIAL_TRAINING,'use at or not')
   flags.DEFINE_string('attacking',ATTACKING,
                       'the method to attack atm in whitebox:fgsm,bim,mifgsm')
+  flags.DEFINE_string('origin_method',ORIGIN_METHOD,
+                      'the method to generate adv to train atm:fgsm,bim,mifgsm')
+  flags.DEFINE_boolean('save_model',SAVE_MODEL,
+                      'save model or not')
+  flags.DEFINE_string('model_type',MODEL_TYPE,
+                      'choose which model:a,b,c')
   tf.app.run()
