@@ -28,6 +28,7 @@ from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
 from cleverhans.utils_keras import cnn_model
+from mymodel import  fc_modelB
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
 
@@ -39,13 +40,15 @@ LEARNING_RATE = .001
 TRAIN_DIR = 'train_dir/mnist'
 FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
+SAVE_MODEL = False
 
 
 def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
-                   testing=False, label_smoothing=0.1):
+                   testing=False, label_smoothing=0.1,
+                   save_model=SAVE_MODEL):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -103,7 +106,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
   # Define TF model graph
-  model = cnn_model(img_rows=img_rows, img_cols=img_cols,
+  model = fc_modelB(img_rows=img_rows, img_cols=img_cols,
                     channels=nchannels, nb_filters=64,
                     nb_classes=nb_classes)
   preds = model(x)
@@ -146,9 +149,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
     loss = CrossEntropy(wrap, smoothing=label_smoothing)
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
-    saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
-    print("model has been saved")
+    if save_model:
+        saver = tf.train.Saver(max_to_keep=1)
+        saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
+        print("model has been saved")
 
 
   # Calculate training error
@@ -160,37 +164,32 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Initialize the Basic Iterative Method (BIM) attack object and graph
   bim = BasicIterativeMethod(wrap, sess=sess)
   bim_params = {'eps': 0.2,
-                'eps_iter':0.09,
+                'eps_iter':0.06,
                 'nb_iter':10,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
-  save_acc = []
-  for i in range(20):
-      print(bim_params)
-      adv_x = bim.generate(x, **bim_params)
-      # Consider the attack to be constant
-      adv_x = tf.stop_gradient(adv_x)
-      preds_adv = model(adv_x)
+  print(bim_params)
+  adv_x = bim.generate(x, **bim_params)
+  # Consider the attack to be constant
+  adv_x = tf.stop_gradient(adv_x)
+  preds_adv = model(adv_x)
 
-      # Evaluate the accuracy of the MNIST model on adversarial examples
-      eval_par = {'batch_size': batch_size}
-      start_time = time.time()
-      acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
-
-      save_acc.append([bim_params['eps_iter'],acc])
-
-      print('Test accuracy on adversarial examples: %0.4f' % acc)
-      end_time = time.time()
-      print("bim attack time is {}\n".format(end_time - start_time))
-      report.clean_train_adv_eval = acc
-
-      bim_params['eps_iter'] += 0.005
+  # Evaluate the accuracy of the MNIST model on adversarial examples
+  eval_par = {'batch_size': batch_size}
+  start_time = time.time()
+  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
 
 
-  save_acc = np.array(save_acc)
-  record = pd.DataFrame(save_acc,columns=["eps_iter","acc"])
-  record.to_csv("result/mnist_bim_epsIter_change.csv",index=False)
+  print('Test accuracy on adversarial examples: %0.4f' % acc)
+  end_time = time.time()
+  print("bim attack time is {}\n".format(end_time - start_time))
+  report.clean_train_adv_eval = acc
+
+
+  # save_acc = np.array(save_acc)
+  # record = pd.DataFrame(save_acc,columns=["eps_iter","acc"])
+  # record.to_csv("result/mnist_bim_epsIter_change.csv",index=False)
 
 
   gc.collect()
@@ -207,7 +206,8 @@ def main(argv=None):
                  learning_rate=FLAGS.learning_rate,
                  train_dir=FLAGS.train_dir,
                  filename=FLAGS.filename,
-                 load_model=FLAGS.load_model)
+                 load_model=FLAGS.load_model,
+                 save_model=FLAGS.save_model)
 
 
 if __name__ == '__main__':
@@ -221,4 +221,5 @@ if __name__ == '__main__':
   flags.DEFINE_string('filename', FILENAME, 'Checkpoint filename.')
   flags.DEFINE_boolean('load_model', LOAD_MODEL,
                        'Load saved model or train.')
+  flags.DEFINE_boolean('save_model', SAVE_MODEL, 'save model or not')
   tf.app.run()
