@@ -203,7 +203,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
           args=train_params, rng=rng)
     if save_model:
         saver = tf.train.Saver(max_to_keep=1)
-        saver.save(sess, '{}/{}.ckpt'.format(train_dir,attacking), global_step=NB_EPOCHS)
+        saver.save(sess, '{}/{}.ckpt'.format(train_dir,origin_method), global_step=NB_EPOCHS)
         keras.models.save_model(model, '{}/{}_mnist.h5'.format(train_dir,origin_method))
         print("model has been saved")
 
