@@ -232,7 +232,9 @@ def main(argv=None):
                  learning_rate=FLAGS.learning_rate,
                  train_dir=FLAGS.train_dir,
                  filename=FLAGS.filename,
-                 load_model=FLAGS.load_model)
+                 load_model=FLAGS.load_model,
+                 attack_method=FLAGS.attack_method,
+                 model_type=FLAGS.model_type)
 
 
 if __name__ == '__main__':

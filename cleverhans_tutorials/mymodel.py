@@ -65,14 +65,9 @@ def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
   for layer in layers:
     model.add(layer)
 
-  if logits:
-    logits_tensor = model(input_ph)
   model.add(Activation('softmax'))
 
-  if logits:
-    return model, logits_tensor
-  else:
-    return model
+  return model
 
 def modelB(logits=False, input_ph=None, img_rows=28, img_cols=28,
               channels=1, nb_filters=64, nb_classes=10):
@@ -116,10 +111,7 @@ def modelB(logits=False, input_ph=None, img_rows=28, img_cols=28,
     logits_tensor = model(input_ph)
   model.add(Activation('softmax'))
 
-  if logits:
-    return model, logits_tensor
-  else:
-    return model
+  return model
 
 def modelC(logits=False, input_ph=None, img_rows=28, img_cols=28,
               channels=1, nb_filters=64, nb_classes=10):
