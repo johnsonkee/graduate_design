@@ -28,6 +28,7 @@ from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
+from cleverhans.utils_keras import cnn_model
 from mymodel import  modelB,modelC,modelA
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
@@ -108,9 +109,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
   # Define TF model graph
-  the_model = modelA
+  the_model = cnn_model
   if model_type == 'a':
-      the_model = modelA
+      the_model = cnn_model
   elif model_type == 'b':
       the_model = modelB
   elif model_type == 'c':
