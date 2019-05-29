@@ -10,6 +10,23 @@ else:
 
 import math
 
+def conv_2d(filters, kernel_shape, strides, padding, input_shape=None):
+  """
+  Defines the right convolutional layer according to the
+  version of Keras that is installed.
+  :param filters: (required integer) the dimensionality of the output
+                  space (i.e. the number output of filters in the
+                  convolution)
+  :param kernel_shape: (required tuple or list of 2 integers) specifies
+                       the strides of the convolution along the width and
+                       height.
+  :param padding: (required string) can be either 'valid' (no padding around
+                  input or feature map) or 'same' (pad to ensure that the
+                  output feature map size is identical to the layer input)
+  :param input_shape: (optional) give input shape if this is the first
+                      layer of the model
+  :return: the Keras layer
+  """
 def modelA(logits=False, input_ph=None, img_rows=28, img_cols=28,
               channels=1, nb_filters=64, nb_classes=10):
   """
