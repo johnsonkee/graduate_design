@@ -211,7 +211,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   print('Test accuracy on adversarial examples: %0.4f' % acc)
   end_time = time.time()
-  print("mifgsm attack time is {}\n".format(end_time - start_time))
+  print("{} attack time is {}\n".format(att_method,end_time - start_time))
   report.clean_train_adv_eval = acc
 
   #save_acc = np.array(save_acc)
