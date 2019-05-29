@@ -108,7 +108,9 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Define TF model graph
   the_model = modelA
-  if model_type == 'b':
+  if model_type == 'a':
+      the_model = modelA
+  elif model_type == 'b':
       the_model = modelB
   elif model_type == 'c':
       the_model = modelC
