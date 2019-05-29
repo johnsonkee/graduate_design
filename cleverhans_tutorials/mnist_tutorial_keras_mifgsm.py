@@ -165,7 +165,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   mifgsm_params = {'eps': 0.2,
                 'eps_iter':0.08,
                 'nb_iter':10,
-                'decay_factor':0.1,
+                'decay_factor':0.4,
                  'clip_min': 0.,
                  'clip_max': 1.}
 
