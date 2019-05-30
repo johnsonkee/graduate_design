@@ -136,6 +136,11 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 #        assert X_test.shape[0] == test_end - test_start, X_test.shape
     print('Test accuracy on legitimate examples: %0.4f' % acc)
 
+    acc = model_eval(sess, x, y, preds, my_adv, y_test, args=eval_params)
+    report.clean_train_clean_eval = acc
+    #        assert X_test.shape[0] == test_end - test_start, X_test.shape
+    print('Test accuracy on my adv examples: %0.4f' % acc)
+
   # Train an MNIST model
   train_params = {
       'nb_epochs': nb_epochs,
@@ -170,53 +175,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
         saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
         print("model has been saved")
 
-
-  # Calculate training error
-  if testing:
-    eval_params = {'batch_size': batch_size}
-    acc = model_eval(sess, x, y, preds, x_train, y_train, args=eval_params)
-    report.train_clean_train_clean_eval = acc
-
   # Initialize the Basic Iterative Method (BIM) attack object and graph
-  if attack_method == 'fgsm':
-    att_method = FastGradientMethod(wrap, sess=sess)
-    att_method_params = {'eps': 0.2,
-                 'clip_min': 0.,
-                 'clip_max': 1.}
-  elif attack_method == 'bim':
-    att_method = BasicIterativeMethod(wrap,sess=sess)
-    att_method_params = {'eps': 0.2,
-                'eps_iter':0.06,
-                'nb_iter':10,
-                 'clip_min': 0.,
-                 'clip_max': 1.}
-  elif attack_method == 'mifgsm':
-    att_method = MomentumIterativeMethod(wrap,sess=sess)
-    att_method_params =  {'eps': 0.2,
-                'eps_iter':0.08,
-                'nb_iter':10,
-                'decay_factor':0.4,
-                 'clip_min': 0.,
-                 'clip_max': 1.}
-  else:
-      exit("the attack method must be fgsm,bim,mifgsm")
 
-
-  print(att_method_params)
-  adv_x = att_method.generate(x, **att_method_params)
-  # Consider the attack to be constant
-  adv_x = tf.stop_gradient(adv_x)
-  preds_adv = model(adv_x)
-
-  # Evaluate the accuracy of the MNIST model on adversarial examples
-  eval_par = {'batch_size': batch_size}
-  start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, my_adv, y_test, args=eval_par)
-
-  print('Test accuracy on adversarial examples: %0.4f' % acc)
-  end_time = time.time()
-  print("{} attack time is {}\n".format(attack_method,end_time - start_time))
-  report.clean_train_adv_eval = acc
 
   #save_acc = np.array(save_acc)
   #record = pd.DataFrame(save_acc,columns=["decay","acc"])
