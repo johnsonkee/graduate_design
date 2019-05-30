@@ -208,7 +208,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Evaluate the accuracy of the MNIST model on adversarial examples
   eval_par = {'batch_size': batch_size}
   start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+  acc = model_eval(sess, x, y, preds_adv, x_train, y_train, args=eval_par)
 
   print('Test accuracy on adversarial examples: %0.4f' % acc)
   end_time = time.time()
