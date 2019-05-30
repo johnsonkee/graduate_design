@@ -223,7 +223,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   for i in range(1,60):
       tmp_data = sess.run(adv_x,feed_dict={x:x_train[i*1000:(i+1)*1000]}).reshape(1000,28,28)
       tmp_train = np.concatenate([tmp_train,tmp_data])
-  np.save("mifgsm_b_train_adv.npy",tmp_train)
+  np.save("{}_{}_train_adv.npy".format(attack_method,model_type),tmp_train)
 
   gc.collect()
 
