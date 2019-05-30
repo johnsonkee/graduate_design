@@ -177,7 +177,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
 
-
+  evaluate()
   #save_acc = np.array(save_acc)
   #record = pd.DataFrame(save_acc,columns=["decay","acc"])
   #record.to_csv("result/mnist_fc_decay__change.csv",index=False)
