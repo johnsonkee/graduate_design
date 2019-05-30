@@ -85,7 +85,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   # Get CIFAR10 data
   data = CIFAR10(train_start=train_start, train_end=train_end,
                  test_start=test_start, test_end=test_end)
-  dataset_size = data.x_train.shape[0]
+  dataset_size = data.x_train.shape[0] 
   dataset_train = data.to_tensorflow()[0]
   dataset_train = dataset_train.map(
       lambda x, y: (random_shift(random_horizontal_flip(x)), y), 4)
@@ -111,7 +111,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   }
   eval_params = {'batch_size': batch_size}
   fgsm_params = {
-      'eps': 0,
+      'eps': 0.3,
       'clip_min': 0.,
       'clip_max': 1.,
       'ord':np.inf
@@ -133,47 +133,30 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   if clean_train:
     model = ModelAllConvolutional('model1', nb_classes, nb_filters,
                                   input_shape=[32, 32, 3])
-
     preds = model.get_logits(x)
     loss = CrossEntropy(model, smoothing=label_smoothing)
-
     def evaluate():
       do_eval(preds, x_test, y_test, 'clean_train_clean_eval', False)
-
-    """
-    when training, evaluating can be happened
-    """
     train(sess, loss, None, None,
           dataset_train=dataset_train, dataset_size=dataset_size,
           evaluate=evaluate, args=train_params, rng=rng,
           var_list=model.get_params())
-
     # Calculate training error
     if testing:
       do_eval(preds, x_train, y_train, 'train_clean_train_clean_eval')
-
     # Initialize the Fast Gradient Sign Method (FGSM) attack object and
     # graph
     fgsm = FastGradientMethod(model, sess=sess)
-    """
+
     adv_x = fgsm.generate(x, **fgsm_params)
     preds_adv = model.get_logits(adv_x)
 
     # Evaluate the accuracy of the MNIST model on adversarial examples
     do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-    """
-    for i in range(20):
-        adv_x = fgsm.generate(x, **fgsm_params)
-        preds_adv = model.get_logits(adv_x)
 
-        print("eps:%f" % fgsm_params["eps"])
-    # Evaluate the accuracy of the MNIST model on adversarial examples
-        do_eval(preds_adv, x_test, y_test, 'clean_train_adv_eval', True)
-        fgsm_params['eps'] = fgsm_params['eps'] + 0.02
     # Calculate training error
     if testing:
       do_eval(preds_adv, x_train, y_train, 'train_clean_train_adv_eval')
-
 
   if not adversarial_training:
       return report
@@ -187,7 +170,6 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
 
   def attack(x):
     return fgsm2.generate(x, **fgsm_params)
-
   # add attack to loss
   loss2 = CrossEntropy(model2, smoothing=label_smoothing, attack=attack)
   preds2 = model2.get_logits(x)

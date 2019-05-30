@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 import sys
 import logging
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow.python.platform import flags
 

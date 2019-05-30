@@ -15,39 +15,45 @@ import os
 import gc
 
 import tensorflow as tf
-import time
 from tensorflow.python.platform import flags
 import numpy as np
-import keras
-from keras import backend
-from keras.datasets import fashion_mnist as FASHION_MNIST
 import pandas as pd
+import keras
+import time
+from keras import backend
 
-from cleverhans.attacks import FastGradientMethod
-from cleverhans.dataset import CIFAR10
+from cleverhans.attacks import MomentumIterativeMethod,\
+    FastGradientMethod,BasicIterativeMethod
+from cleverhans.dataset import MNIST
 from cleverhans.loss import CrossEntropy
 from cleverhans.train import train
 from cleverhans.utils import AccuracyReport
-from cleverhans.utils_keras import cnn_model
+from cleverhans.utils_keras import cnn_model as modelB
+from mymodel import  modelC,modelA
 from cleverhans.utils_keras import KerasModelWrapper
 from cleverhans.utils_tf import model_eval
-from cleverhans.model_zoo.all_convolutional import ModelAllConvolutional
 
 FLAGS = flags.FLAGS
 
 NB_EPOCHS = 6
 BATCH_SIZE = 128
 LEARNING_RATE = .001
-TRAIN_DIR = 'train_dir/fashion'
-FILENAME = 'fashion.ckpt'
+TRAIN_DIR = 'train_dir/mnist'
+FILENAME = 'mnist.ckpt'
 LOAD_MODEL = False
+SAVE_MODEL = False
+ATTACK_METHOD = 'fgsm'
+MODEL_TYPE = 'a'
+SAMPLE = 'mifgsm_c_test_adv.npy'
 
-
-def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
+def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                    test_end=10000, nb_epochs=NB_EPOCHS, batch_size=BATCH_SIZE,
                    learning_rate=LEARNING_RATE, train_dir=TRAIN_DIR,
                    filename=FILENAME, load_model=LOAD_MODEL,
-                   testing=False, label_smoothing=0.1):
+                   testing=False, label_smoothing=0.1,
+                   save_model=SAVE_MODEL,attack_method=ATTACK_METHOD,
+                   model_type=MODEL_TYPE,
+                   sample=SAMPLE):
   """
   MNIST CleverHans tutorial
   :param train_start: index of first training set example
@@ -82,7 +88,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
           "'th', temporarily setting to 'tf'")
 
   # Create TF session and set as Keras backend session
-  os.environ["CUDA_VISIBLE_DEVICES"] = '0'  # only use No.0 GPU
+  os.environ["CUDA_VISIBLE_DEVICES"] = '1'  # only use No.0 GPU
   config = tf.ConfigProto()
   config.allow_soft_placement=True
   config.gpu_options.allow_growth = True
@@ -90,9 +96,12 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   keras.backend.set_session(sess)
 
   # Get MNIST test data
-  fashion_mnist = FASHION_MNIST.load_data()
-  x_train,y_train = fashion_mnist[0]
-  x_test,y_test = fashion_mnist[1]
+  mnist = MNIST(train_start=train_start, train_end=train_end,
+                test_start=test_start, test_end=test_end)
+  x_train, y_train = mnist.get_set('train')
+  x_test, y_test = mnist.get_set('test')
+
+  x_test = np.load(sample).reshape(-1,28,28,1)
 
   # Obtain Image Parameters
   img_rows, img_cols, nchannels = x_train.shape[1:4]
@@ -104,11 +113,18 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   y = tf.placeholder(tf.float32, shape=(None, nb_classes))
 
   # Define TF model graph
-  model = cnn_model(img_rows=img_rows, img_cols=img_cols,
-                    channels=nchannels, nb_filters=64,
-                    nb_classes=nb_classes)
-  model = ModelAllConvolutional('model1', nb_classes, nb_filters=64,
-                                  input_shape=[32, 32, 3])
+  the_model = modelA
+  if model_type == 'a':
+      the_model = modelA
+  elif model_type == 'b':
+      the_model = modelB
+  elif model_type == 'c':
+      the_model = modelC
+  else:
+      exit('the model type must be a or b or c.')
+  model = the_model(img_rows=img_rows, img_cols=img_cols,
+                 channels=nchannels, nb_filters=64,
+                 nb_classes=nb_classes)
   preds = model(x)
   print("Defined TensorFlow model graph.")
 
@@ -136,7 +152,7 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   ckpt = tf.train.get_checkpoint_state(train_dir)
   print(train_dir, ckpt)
   ckpt_path = False if ckpt is None else ckpt.model_checkpoint_path
-  # wrap = KerasModelWrapper(model)
+  wrap = KerasModelWrapper(model)
 
   if load_model and ckpt_path:
     saver = tf.train.Saver()
@@ -146,12 +162,13 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     evaluate()
   else:
     print("Model was not loaded, training from scratch.")
-    loss = CrossEntropy(model, smoothing=label_smoothing)
+    loss = CrossEntropy(wrap, smoothing=label_smoothing)
     train(sess, loss, x_train, y_train, evaluate=evaluate,
           args=train_params, rng=rng)
-    saver = tf.train.Saver(max_to_keep=1)
-    saver.save(sess, '{}/cifar10.ckpt'.format(train_dir), global_step=NB_EPOCHS)
-    print("model has been saved")
+    if save_model:
+        saver = tf.train.Saver(max_to_keep=1)
+        saver.save(sess, '{}/mnist.ckpt'.format(train_dir), global_step=NB_EPOCHS)
+        print("model has been saved")
 
 
   # Calculate training error
@@ -160,14 +177,33 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
     acc = model_eval(sess, x, y, preds, x_train, y_train, args=eval_params)
     report.train_clean_train_clean_eval = acc
 
-  # Initialize the Fast Gradient Sign Method (FGSM) attack object and graph
-  fgsm = FastGradientMethod(model, sess=sess)
-  fgsm_params = {'eps': 0.2,
+  # Initialize the Basic Iterative Method (BIM) attack object and graph
+  if attack_method == 'fgsm':
+    att_method = FastGradientMethod(wrap, sess=sess)
+    att_method_params = {'eps': 0.2,
                  'clip_min': 0.,
                  'clip_max': 1.}
+  elif attack_method == 'bim':
+    att_method = BasicIterativeMethod(wrap,sess=sess)
+    att_method_params = {'eps': 0.2,
+                'eps_iter':0.06,
+                'nb_iter':10,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  elif attack_method == 'mifgsm':
+    att_method = MomentumIterativeMethod(wrap,sess=sess)
+    att_method_params =  {'eps': 0.2,
+                'eps_iter':0.08,
+                'nb_iter':10,
+                'decay_factor':0.4,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  else:
+      exit("the attack method must be fgsm,bim,mifgsm")
 
-  print(fgsm_params)
-  adv_x = fgsm.generate(x, **fgsm_params)
+
+  print(att_method_params)
+  adv_x = att_method.generate(x, **att_method_params)
   # Consider the attack to be constant
   adv_x = tf.stop_gradient(adv_x)
   preds_adv = model(adv_x)
@@ -176,34 +212,31 @@ def cifar10_tutorial(train_start=0, train_end=60000, test_start=0,
   eval_par = {'batch_size': batch_size}
   start_time = time.time()
   acc = model_eval(sess, x, y, preds_adv, x_test, y_test, args=eval_par)
+
   print('Test accuracy on adversarial examples: %0.4f' % acc)
   end_time = time.time()
-  print("FGSM attack time is {}\n".format(end_time-start_time))
+  print("{} attack time is {}\n".format(attack_method,end_time - start_time))
   report.clean_train_adv_eval = acc
 
+  #save_acc = np.array(save_acc)
+  #record = pd.DataFrame(save_acc,columns=["decay","acc"])
+  #record.to_csv("result/mnist_fc_decay__change.csv",index=False)
 
-  # Calculating train error
-  if testing:
-    eval_par = {'batch_size': batch_size}
-    acc = model_eval(sess, x, y, preds_adv, x_train,
-                     y_train, args=eval_par)
-    report.train_clean_train_adv_eval = acc
-
-  gc.collect()
-
-  return report
 
 
 def main(argv=None):
   from cleverhans_tutorials import check_installation
   check_installation(__file__)
 
-  cifar10_tutorial(nb_epochs=FLAGS.nb_epochs,
+  mnist_tutorial(nb_epochs=FLAGS.nb_epochs,
                  batch_size=FLAGS.batch_size,
                  learning_rate=FLAGS.learning_rate,
                  train_dir=FLAGS.train_dir,
                  filename=FLAGS.filename,
-                 load_model=FLAGS.load_model)
+                 load_model=FLAGS.load_model,
+                 save_model=FLAGS.save_model,
+                 attack_method=FLAGS.attack_method,
+                 model_type=FLAGS.model_type)
 
 
 if __name__ == '__main__':
@@ -217,4 +250,12 @@ if __name__ == '__main__':
   flags.DEFINE_string('filename', FILENAME, 'Checkpoint filename.')
   flags.DEFINE_boolean('load_model', LOAD_MODEL,
                        'Load saved model or train.')
+  flags.DEFINE_boolean('save_model',SAVE_MODEL,
+                       'save the model or not')
+  flags.DEFINE_string('attack_method',ATTACK_METHOD,
+                      'choose the attack method: fgsm, bim, mifgsm')
+  flags.DEFINE_string('model_type',MODEL_TYPE,
+                      'choose which model:a,b,c')
+  flags.DEFINE_string('sample',SAMPLE,
+                      'the adv sample name')
   tf.app.run()
