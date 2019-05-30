@@ -208,7 +208,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   # Evaluate the accuracy of the MNIST model on adversarial examples
   eval_par = {'batch_size': batch_size}
   start_time = time.time()
-  acc = model_eval(sess, x, y, preds_adv, x_train, y_train, args=eval_par)
+  acc = model_eval(sess, x, y, preds_adv, x_train[0:10000], y_train[0:10000], args=eval_par)
 
   print('Test accuracy on adversarial examples: %0.4f' % acc)
   end_time = time.time()
@@ -219,8 +219,8 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   #record = pd.DataFrame(save_acc,columns=["decay","acc"])
   #record.to_csv("result/mnist_fc_decay__change.csv",index=False)
 
-  tmp_train = sess.run(adv_x,feed_dict={x:x_train})
-  np.save("mifgsm_b_train_adv.npy",tmp_train)
+  #tmp_train = sess.run(adv_x,feed_dict={x:x_train})
+  #np.save("mifgsm_b_train_adv.npy",tmp_train)
 
   gc.collect()
 
