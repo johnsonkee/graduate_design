@@ -98,7 +98,7 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
                 test_start=test_start, test_end=test_end)
   x_train, y_train = mnist.get_set('train')
   x_test, y_test = mnist.get_set('test')
-  my_adv = np.load('mifgsm_c_train_adv.npy').reshape(60000,28,28)
+  my_adv = np.load('mifgsm_c_train_adv.npy')
   x_train = np.concatenate([x_train,my_adv])
   y_train = np.concatenate([y_train,y_train])
 
