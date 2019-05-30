@@ -236,7 +236,8 @@ def main(argv=None):
                  load_model=FLAGS.load_model,
                  save_model=FLAGS.save_model,
                  attack_method=FLAGS.attack_method,
-                 model_type=FLAGS.model_type)
+                 model_type=FLAGS.model_type,
+                 sample=FLAGS.sample)
 
 
 if __name__ == '__main__':
