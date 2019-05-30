@@ -219,12 +219,10 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
   #record = pd.DataFrame(save_acc,columns=["decay","acc"])
   #record.to_csv("result/mnist_fc_decay__change.csv",index=False)
 
-  #tmp_train = sess.run(adv_x,feed_dict={x:x_train})
-  #np.save("mifgsm_b_train_adv.npy",tmp_train)
+  tmp_train = sess.run(adv_x,feed_dict={x:x_train})
+  np.save("mifgsm_b_train_adv.npy",tmp_train)
 
   gc.collect()
-
-  return report
 
 
 def main(argv=None):
