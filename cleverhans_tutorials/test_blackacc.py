@@ -176,6 +176,43 @@ def mnist_tutorial(train_start=0, train_end=60000, test_start=0,
         print("model has been saved")
 
   # Initialize the Basic Iterative Method (BIM) attack object and graph
+  if attack_method == 'fgsm':
+    att_method = FastGradientMethod(wrap, sess=sess)
+    att_method_params = {'eps': 0.2,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  elif attack_method == 'bim':
+    att_method = BasicIterativeMethod(wrap,sess=sess)
+    att_method_params = {'eps': 0.2,
+                'eps_iter':0.06,
+                'nb_iter':10,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  elif attack_method == 'mifgsm':
+    att_method = MomentumIterativeMethod(wrap,sess=sess)
+    att_method_params =  {'eps': 0.2,
+                'eps_iter':0.08,
+                'nb_iter':10,
+                'decay_factor':0.4,
+                 'clip_min': 0.,
+                 'clip_max': 1.}
+  else:
+      exit("the attack method must be fgsm,bim,mifgsm")
+
+
+  print(att_method_params)
+  adv_x = att_method.generate(x, **att_method_params)
+  # Consider the attack to be constant
+  adv_x = tf.stop_gradient(adv_x)
+  preds_adv = model(adv_x)
+
+  tmp_train = sess.run(adv_x,feed_dict={x:x_test[0:1000]}).reshape(1000,28,28)
+  for i in range(1,10):
+      tmp_data = sess.run(adv_x,feed_dict={x:x_test[i*1000:(i+1)*1000]}).reshape(1000,28,28)
+      tmp_train = np.concatenate([tmp_train,tmp_data])
+  np.save("{}_{}_test_adv_at.npy".format(attack_method,model_type),tmp_train)
+
+  # Initialize the Basic Iterative Method (BIM) attack object and graph
 
   evaluate()
   #save_acc = np.array(save_acc)
