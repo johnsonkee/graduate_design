@@ -1,0 +1,2 @@
+model_checkpoint_path: "bim.ckpt-6"
+all_model_checkpoint_paths: "bim.ckpt-6"
